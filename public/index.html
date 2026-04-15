@@ -304,18 +304,20 @@
             <div class="card">
                 <h3>Audio Joiner</h3>
 
-                <div id="mergeAudioPlayer" style="margin: 15px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: #f9f9f9;">
-                    <h4>Selected Audio Files</h4>
-                    <div id="selectedAudioList" style="margin: 10px 0;">
-                        <p style="color: #666;">No audio files selected</p>
+                <div id="mergeAudioList" style="margin: 15px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: #f9f9f9; max-height: 300px; overflow-y: auto;">
+                    <h4>Select Audio Files to Merge</h4>
+                    <div id="mergeFileList" style="margin: 10px 0;">
+                        <p style="color: #666;">Loading audio files...</p>
                     </div>
-                    <div id="mergeAudioControls" style="display: none;">
-                        <audio id="mergeAudio" controls style="width: 100%; margin: 10px 0;">
-                            Your browser does not support the audio element.
-                        </audio>
-                        <div id="mergeAudioInfo" style="font-size: 14px; color: #666; margin-top: 5px;">
-                            Select audio files to play
-                        </div>
+                </div>
+
+                <div id="mergeAudioPlayer" style="margin: 15px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: #f9f9f9;">
+                    <h4>Audio Player</h4>
+                    <audio id="mergeAudio" controls style="width: 100%; margin: 10px 0;">
+                        Your browser does not support the audio element.
+                    </audio>
+                    <div id="mergeAudioInfo" style="font-size: 14px; color: #666; margin-top: 5px;">
+                        Select an audio file to play preview
                     </div>
                 </div>
 
@@ -778,44 +780,50 @@
 
         /* MERGE */
         function setupMergeAudioPlayer() {
-            const checkboxes = document.querySelectorAll("input[type=checkbox]");
-            const selectedAudioList = document.getElementById("selectedAudioList");
-            const mergeAudioControls = document.getElementById("mergeAudioControls");
+            const mergeFileList = document.getElementById("mergeFileList");
             const audioPlayer = document.getElementById("mergeAudio");
             const audioInfo = document.getElementById("mergeAudioInfo");
 
-            checkboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', function() {
-                    updateSelectedAudioList();
-                });
+            // Display all uploaded files with checkboxes
+            if (uploadedFiles.length === 0) {
+                mergeFileList.innerHTML = '<p style="color: #666;">No audio files available. Please upload files first.</p>';
+                return;
+            }
+
+            let html = '<div style="margin: 10px 0;">';
+            uploadedFiles.forEach((file, index) => {
+                const audioUrl = file.url || file.cloudinaryUrl;
+                html += `<div style="padding: 10px; margin: 5px 0; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px;">
+                    <label style="cursor: pointer; display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" id="merge-check-${index}" value="${index}" style="width: auto; cursor: pointer;" onchange="onMergeSelectionChange()">
+                        <div style="flex: 1;">
+                            <div style="font-weight: bold; color: #333;">${file.originalName}</div>
+                            <div style="font-size: 12px; color: #666;">Duration: ${Math.round(file.duration)}s | Size: ${Math.round(file.size/1024)}KB</div>
+                        </div>
+                        <button onclick="playMergeAudio(${index})" style="width: auto; padding: 5px 10px; background: #17a2b8; color: white; font-size: 12px;" type="button">▶ Play</button>
+                    </label>
+                </div>`;
             });
+            html += '</div>';
+            html += '<div style="margin-top: 10px; padding: 10px; background: #e7f3ff; border-radius: 5px; font-size: 14px;">';
+            html += '<strong>Instructions:</strong><br>';
+            html += '1. Select at least 2 audio files using the checkboxes<br>';
+            html += '2. Click "Play" to preview any file<br>';
+            html += '3. Click "Merge & Download" to combine selected files';
+            html += '</div>';
+            
+            mergeFileList.innerHTML = html;
+        }
 
-            function updateSelectedAudioList() {
-                const selected = document.querySelectorAll("input[type=checkbox]:checked");
-                
-                if (selected.length === 0) {
-                    selectedAudioList.innerHTML = '<p style="color: #666;">No audio files selected</p>';
-                    mergeAudioControls.style.display = 'none';
-                    return;
-                }
-
-                let html = '<div style="margin: 10px 0;">';
-                selected.forEach((checkbox, index) => {
-                    const file = uploadedFiles[checkbox.value];
-                    html += `<div style="padding: 8px; margin: 5px 0; background: #f0f8ff; border-radius: 5px; cursor: pointer;" onclick="playMergeAudio(${checkbox.value})">
-                        <strong>${index + 1}. ${file.originalName}</strong><br>
-                        <small>Duration: ${Math.round(file.duration)}s | Size: ${Math.round(file.size/1024)}KB</small>
-                    </div>`;
-                });
-                html += '</div>';
-                
-                selectedAudioList.innerHTML = html;
-                mergeAudioControls.style.display = 'block';
-                
-                // Load first selected file by default
-                if (selected.length > 0) {
-                    playMergeAudio(selected[0].value);
-                }
+        function onMergeSelectionChange() {
+            const selected = document.querySelectorAll('#joinSection input[type=checkbox]:checked');
+            const audioInfo = document.getElementById("mergeAudioInfo");
+            
+            if (selected.length === 0) {
+                audioInfo.innerHTML = 'Select an audio file to play preview';
+            } else if (selected.length === 1) {
+                // Auto-play the selected file
+                playMergeAudio(selected[0].value);
             }
         }
 
@@ -833,9 +841,11 @@
         }
 
         async function merge() {
-            let selected = document.querySelectorAll("input[type=checkbox]:checked");
+            // Get selected checkboxes only from the joinSection
+            const joinSection = document.getElementById('joinSection');
+            let selected = joinSection.querySelectorAll("input[type=checkbox]:checked");
 
-            if (selected.length < 2) return alert("Select at least 2 files to merge");
+            if (selected.length < 2) return alert("Select at least 2 files to merge in the Audio Joiner section");
 
             let urls = [];
             selected.forEach(s => {
