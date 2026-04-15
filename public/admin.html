@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Audio Tools</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f0f2f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+        }
+        .login-box, .admin-panel {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button.delete {
+            background: #dc3545;
+            width: auto;
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+        button.delete:hover {
+            background: #c82333;
+        }
+        button.refresh {
+            background: #28a745;
+            margin-bottom: 20px;
+        }
+        button.refresh:hover {
+            background: #218838;
+        }
+        .keys-list {
+            margin-top: 20px;
+        }
+        .key-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin: 10px 0;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+        }
+        .key-info {
+            flex: 1;
+        }
+        .key-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .key-date {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+        }
+        .stat-label {
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .error {
+            color: #dc3545;
+            background: #f8d7da;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .success {
+            color: #155724;
+            background: #d4edda;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #007bff;
+            text-decoration: none;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 Admin Panel</h1>
+            <p>Manage User Keys</p>
+        </div>
+
+        <!-- Login Section -->
+        <div id="loginSection" class="login-box">
+            <h2>Admin Login</h2>
+            <p>Enter admin password to access the panel</p>
+            <input type="password" id="adminPassword" placeholder="Admin Password">
+            <button onclick="login()">Login</button>
+            <div id="loginMessage"></div>
+            <a href="/" class="back-link">← Back to Main Page</a>
+        </div>
+
+        <!-- Admin Panel -->
+        <div id="adminPanel" class="admin-panel hidden">
+            <h2>All User Keys</h2>
+            
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalKeys">0</div>
+                    <div class="stat-label">Total Keys</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="todayKeys">0</div>
+                    <div class="stat-label">Created Today</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="thisWeekKeys">0</div>
+                    <div class="stat-label">This Week</div>
+                </div>
+            </div>
+
+            <button class="refresh" onclick="loadKeys()">🔄 Refresh Keys</button>
+            
+            <div id="message"></div>
+            
+            <div class="keys-list" id="keysList">
+                <p>Loading keys...</p>
+            </div>
+
+            <a href="/" class="back-link">← Back to Main Page</a>
+        </div>
+    </div>
+
+    <script>
+        let adminPass = '';
+
+        async function login() {
+            adminPass = document.getElementById('adminPassword').value;
+            
+            if (!adminPass) {
+                showMessage('loginMessage', 'Please enter admin password', 'error');
+                return;
+            }
+
+            // Try to fetch keys to verify password
+            try {
+                const res = await fetch('/api/auth/admin/keys', {
+                    headers: { 'admin-password': adminPass }
+                });
+
+                if (res.ok) {
+                    document.getElementById('loginSection').classList.add('hidden');
+                    document.getElementById('adminPanel').classList.remove('hidden');
+                    const keys = await res.json();
+                    displayKeys(keys);
+                } else {
+                    const error = await res.json();
+                    showMessage('loginMessage', error.message || 'Invalid password', 'error');
+                }
+            } catch (error) {
+                showMessage('loginMessage', 'Error: ' + error.message, 'error');
+            }
+        }
+
+        async function loadKeys() {
+            try {
+                const res = await fetch('/api/auth/admin/keys', {
+                    headers: { 'admin-password': adminPass }
+                });
+
+                if (res.ok) {
+                    const keys = await res.json();
+                    displayKeys(keys);
+                    showMessage('message', 'Keys loaded successfully', 'success');
+                } else {
+                    const error = await res.json();
+                    showMessage('message', error.message, 'error');
+                }
+            } catch (error) {
+                showMessage('message', 'Error loading keys: ' + error.message, 'error');
+            }
+        }
+
+        function displayKeys(keys) {
+            const keysList = document.getElementById('keysList');
+            
+            if (keys.length === 0) {
+                keysList.innerHTML = '<p style="text-align: center; color: #666;">No keys found</p>';
+                updateStats(keys);
+                return;
+            }
+
+            let html = '';
+            keys.forEach((user, index) => {
+                const date = new Date(user.createdAt).toLocaleString();
+                html += `
+                    <div class="key-item">
+                        <div class="key-info">
+                            <div class="key-number">${user.key}</div>
+                            <div class="key-date">Created: ${date}</div>
+                        </div>
+                        <button class="delete" onclick="deleteKey('${user.key}')">🗑 Delete</button>
+                    </div>
+                `;
+            });
+            
+            keysList.innerHTML = html;
+            updateStats(keys);
+        }
+
+        function updateStats(keys) {
+            document.getElementById('totalKeys').textContent = keys.length;
+            
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            const weekAgo = new Date();
+            weekAgo.setDate(weekAgo.getDate() - 7);
+            
+            const todayCount = keys.filter(k => new Date(k.createdAt) >= today).length;
+            const weekCount = keys.filter(k => new Date(k.createdAt) >= weekAgo).length;
+            
+            document.getElementById('todayKeys').textContent = todayCount;
+            document.getElementById('thisWeekKeys').textContent = weekCount;
+        }
+
+        async function deleteKey(key) {
+            if (!confirm(`Are you sure you want to delete key "${key}"?`)) {
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/auth/admin/keys/${key}`, {
+                    method: 'DELETE',
+                    headers: { 'admin-password': adminPass }
+                });
+
+                if (res.ok) {
+                    showMessage('message', `Key ${key} deleted successfully`, 'success');
+                    loadKeys();
+                } else {
+                    const error = await res.json();
+                    showMessage('message', error.message, 'error');
+                }
+            } catch (error) {
+                showMessage('message', 'Error deleting key: ' + error.message, 'error');
+            }
+        }
+
+        function showMessage(elementId, message, type) {
+            const el = document.getElementById(elementId);
+            el.textContent = message;
+            el.className = type;
+            setTimeout(() => {
+                el.textContent = '';
+                el.className = '';
+            }, 3000);
+        }
+
+        // Allow Enter key to login
+        document.getElementById('adminPassword')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                login();
+            }
+        });
+    </script>
+</body>
+</html>
