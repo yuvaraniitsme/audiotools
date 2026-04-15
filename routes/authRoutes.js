@@ -5,6 +5,7 @@ const router = express.Router();
 router.post('/create-key', async (req, res) => {
     try {
         const { key } = req.body;
+        console.log('Create key request received:', key);
         
         if (!key || key.length !== 5) {
             return res.status(400).json({ message: 'Key must be 5 digits' });
@@ -17,10 +18,12 @@ router.post('/create-key', async (req, res) => {
 
         const user = new User({ key });
         await user.save();
+        console.log('Key created successfully:', key);
 
         res.status(201).json({ message: 'Key created successfully', key });
     } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
+        console.error('Create key error:', error);
+        res.status(500).json({ message: 'Server error', error: error.message, stack: error.stack });
     }
 });
 
