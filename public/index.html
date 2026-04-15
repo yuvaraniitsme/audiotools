@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Audio Tools</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            margin: 0;
+            background: #f4f6f9;
+            text-align: center;
+        }
+
+        .container {
+            padding: 15px;
+        }
+
+        .card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        .blue {
+            background: #007bff;
+            color: white;
+        }
+
+        .orange {
+            background: orange;
+            color: white;
+        }
+
+        .dark {
+            background: #007bff;
+            color: white;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .backBtn {
+            background: #28a745;
+            color: white;
+        }
+
+        .expandable {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .expandable-content {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .expandable-content.show {
+            display: block;
+        }
+
+        .arrow {
+            display: inline-block;
+            margin-right: 5px;
+            transition: transform 0.2s;
+        }
+
+        .arrow.down {
+            transform: rotate(90deg);
+        }
+
+        .loading-container {
+            margin: 15px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+            text-align: center;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #007bff, #0056b3);
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.3s ease;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .button-loading {
+            position: relative;
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .button-loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 16px;
+            height: 16px;
+            margin: -8px 0 0 -8px;
+            border: 2px solid transparent;
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <!-- WELCOME -->
+        <div id="welcome" class="section" style="display:block">
+            <div class="card">
+                <h2>WELCOME TO AUDIO TOOLS</h2>
+                <button class="blue" onclick="navigate('login')">LOGIN 🔑</button>
+                <button class="orange" onclick="navigate('create')">CREATE KEY +</button>
+            </div>
+        </div>
+
+        <!-- CREATE -->
+        <div id="create" class="section">
+            <div class="card">
+                <h3>Create 5-Digit Key</h3>
+                <input type="number" id="newKey" placeholder="Enter 5 digit key">
+                <button class="blue" onclick="createKey()">OK</button>
+                <button class="backBtn" onclick="goBack()">⬅ Back</button>
+            </div>
+        </div>
+
+        <!-- LOGIN -->
+        <div id="login" class="section">
+            <div class="card">
+                <h3>Login</h3>
+                <input type="number" id="loginKey" placeholder="Enter key">
+                <button class="blue" onclick="login()">SUBMIT</button>
+                <button class="backBtn" onclick="goBack()">⬅ Back</button>
+            </div>
+        </div>
+
+        <!-- DASHBOARD -->
+        <div id="dashboard" class="section">
+            <h3>DASHBOARD</h3>
+
+            <div class="grid">
+                <div class="card dark" onclick="navigate('cutSection')">
+                    AUDIO CUTTER &#9986;
+                </div>
+
+                <div class="card dark" onclick="navigate('joinSection')">
+                    AUDIO JOINER &#128266;
+                </div>
+            </div>
+
+            <div class="card">
+                <h4>Audio Files</h4>
+                <input type="file" multiple id="files" accept="audio/*">
+                <button id="audioUploadButton" class="blue" onclick="upload()">Upload Audio Files</button>
+                
+                <div id="audioUploadLoading" class="loading-container" style="display: none;">
+                    <div class="loading-spinner"></div>
+                    <div class="progress-bar">
+                        <div id="audioUploadProgress" class="progress-fill"></div>
+                    </div>
+                    <div id="audioUploadText" class="loading-text">Uploading audio files...</div>
+                </div>
+                
+                <button onclick="clearAudioFiles()" style="background: #dc3545; width: auto; padding: 12px 20px; margin-top: 10px;">Clear All</button>
+                <div id="fileList"></div>
+            </div>
+
+            <div class="card">
+                <h4 class="expandable orange" onclick="toggleExpand('imageInputSection')">
+                    <span class="arrow" id="imageInputSection-arrow">></span> Images - Upload
+                </h4>
+                <div id="imageInputSection" class="expandable-content">
+                    <input type="file" multiple id="imageFiles" accept="image/*">
+                    <button id="imageUploadButton" class="blue" onclick="uploadImages()">Upload Images</button>
+                    
+                    <div id="imageUploadLoading" class="loading-container" style="display: none;">
+                        <div class="loading-spinner"></div>
+                        <div class="progress-bar">
+                            <div id="imageUploadProgress" class="progress-fill"></div>
+                        </div>
+                        <div id="imageUploadText" class="loading-text">Uploading images...</div>
+                    </div>
+                    
+                    <div id="imageFileList"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h4 class="expandable orange" onclick="toggleExpand('imageOutputSection')">
+                    <span class="arrow" id="imageOutputSection-arrow">></span> Images - Cloud Storage
+                </h4>
+                <div id="imageOutputSection" class="expandable-content">
+                    <button class="orange" onclick="navigate('cloudImages')" style="width: auto; padding: 12px 20px; margin-top: 10px;">View All Images &#9889;</button>
+                    <div id="uploadedImageList"></div>
+                </div>
+            </div>
+
+            <button class="backBtn" onclick="goBack()">&#x2190 Back</button>
+        </div>
+
+        <!-- CUT -->
+        <div id="cutSection" class="section">
+            <div class="card">
+                <h3>Audio Cutter</h3>
+
+                <div id="cutAudioPlayer" style="margin: 15px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: #f9f9f9;">
+                    <h4>Audio Player</h4>
+                    <audio id="cutAudio" controls style="width: 100%; margin: 10px 0;">
+                        Your browser does not support the audio element.
+                    </audio>
+                    <div id="cutAudioInfo" style="font-size: 14px; color: #666; margin-top: 5px;">
+                        Select an audio file to play
+                    </div>
+                    <button onclick="setupCutAudioPlayer()" style="width: auto; padding: 8px 15px; margin-top: 10px; background: #6c757d; color: white;">🔄 Refresh Audio</button>
+                </div>
+
+                <input type="number" id="start" placeholder="Start (sec)" step="0.1">
+                <input type="number" id="end" placeholder="End (sec)" step="0.1">
+
+                <div id="cutLoadingContainer" class="loading-container" style="display: none;">
+                    <div class="loading-spinner"></div>
+                    <div class="progress-bar">
+                        <div id="cutProgressFill" class="progress-fill"></div>
+                    </div>
+                    <div id="cutLoadingText" class="loading-text">Processing audio...</div>
+                </div>
+
+                <button id="cutButton" class="blue" onclick="cut()">Cut & Download</button>
+                <button class="backBtn" onclick="goBack()">⬅ Back</button>
+            </div>
+        </div>
+
+        <!-- JOIN -->
+        <div id="joinSection" class="section">
+            <div class="card">
+                <h3>Audio Joiner</h3>
+
+                <div id="mergeAudioPlayer" style="margin: 15px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: #f9f9f9;">
+                    <h4>Selected Audio Files</h4>
+                    <div id="selectedAudioList" style="margin: 10px 0;">
+                        <p style="color: #666;">No audio files selected</p>
+                    </div>
+                    <div id="mergeAudioControls" style="display: none;">
+                        <audio id="mergeAudio" controls style="width: 100%; margin: 10px 0;">
+                            Your browser does not support the audio element.
+                        </audio>
+                        <div id="mergeAudioInfo" style="font-size: 14px; color: #666; margin-top: 5px;">
+                            Select audio files to play
+                        </div>
+                    </div>
+                </div>
+
+                <div id="mergeLoadingContainer" class="loading-container" style="display: none;">
+                    <div class="loading-spinner"></div>
+                    <div class="progress-bar">
+                        <div id="mergeProgressFill" class="progress-fill"></div>
+                    </div>
+                    <div id="mergeLoadingText" class="loading-text">Merging audio files...</div>
+                </div>
+
+                <button id="mergeButton" class="blue" onclick="merge()">Merge & Download</button>
+                <button class="backBtn" onclick="goBack()">&#x2190 Back</button>
+            </div>
+        </div>
+
+        <!-- CLOUD IMAGES -->
+        <div id="cloudImages" class="section">
+            <div class="card">
+                <h3>Cloud Images</h3>
+                <div id="imageList"></div>
+                <button class="backBtn" onclick="goBack()">&#x2190 Back</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let uploadedFiles = [];
+        let uploadedImages = [];
+        let historyStack = [];
+        let currentUserKey = localStorage.getItem("userKey") || "";
+
+        // Check if user is logged in on page load
+        window.onload = function() {
+            if (currentUserKey) {
+                loadUserFiles();
+            }
+        };
+
+        /* NAVIGATION SYSTEM */
+        function navigate(id) {
+            let current = getCurrentSection();
+            if (current) historyStack.push(current);
+
+            show(id);
+        }
+
+        function goBack() {
+            if (historyStack.length === 0) return;
+            let last = historyStack.pop();
+            show(last);
+        }
+
+        function show(id) {
+            document.querySelectorAll(".section").forEach(s => s.style.display = "none");
+            document.getElementById(id).style.display = "block";
+        }
+
+        function getCurrentSection() {
+            let sections = document.querySelectorAll(".section");
+            for (let s of sections) {
+                if (s.style.display === "block") return s.id;
+            }
+            return null;
+        }
+
+        /* KEY SYSTEM */
+        async function createKey() {
+            let key = document.getElementById("newKey").value;
+            if (key.length !== 5) return alert("Enter 5 digit key");
+
+            try {
+                const res = await fetch("/api/auth/create-key", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ key })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    localStorage.setItem("userKey", key);
+                    alert("Key Created Successfully!");
+                    navigate("login");
+                } else {
+                    alert(data.message || "Failed to create key");
+                }
+            } catch (error) {
+                alert("Error creating key: " + error.message);
+            }
+        }
+
+        async function login() {
+            let key = document.getElementById("loginKey").value;
+
+            try {
+                const res = await fetch("/api/auth/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ key })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    localStorage.setItem("userKey", key);
+                    currentUserKey = key;
+                    loadUserFiles();
+                    navigate("dashboard");
+                } else {
+                    alert(data.message || "Login failed");
+                }
+            } catch (error) {
+                alert("Error logging in: " + error.message);
+            }
+        }
+
+        /* UPLOAD */
+        async function upload() {
+            let files = document.getElementById("files").files;
+            if (files.length === 0) return alert("Please select files");
+
+            // Show loading animation
+            const loadingContainer = document.getElementById("audioUploadLoading");
+            const progressFill = document.getElementById("audioUploadProgress");
+            const loadingText = document.getElementById("audioUploadText");
+            const uploadButton = document.getElementById("audioUploadButton");
+            
+            loadingContainer.style.display = "block";
+            uploadButton.classList.add("button-loading");
+            uploadButton.disabled = true;
+
+            // Simulate progress animation
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 10;
+                if (progress > 85) progress = 85;
+                progressFill.style.width = progress + "%";
+                
+                if (progress < 30) {
+                    loadingText.textContent = "Preparing audio files...";
+                } else if (progress < 60) {
+                    loadingText.textContent = "Uploading to cloud...";
+                } else {
+                    loadingText.textContent = "Processing audio files...";
+                }
+            }, 400);
+
+            let formData = new FormData();
+            for (let f of files) formData.append("audios", f);
+
+            try {
+                let res = await fetch("/api/audio/upload", {
+                    method: "POST",
+                    headers: { "user-key": currentUserKey },
+                    body: formData
+                });
+
+                clearInterval(progressInterval);
+                progressFill.style.width = "100%";
+                loadingText.textContent = "Finalizing...";
+
+                if (!res.ok) {
+                    const error = await res.json();
+                    throw new Error(error.message || "Upload failed");
+                }
+
+                uploadedFiles = await res.json();
+                displayUploadedFiles();
+                
+                setTimeout(() => {
+                    loadingContainer.style.display = "none";
+                    uploadButton.classList.remove("button-loading");
+                    uploadButton.disabled = false;
+                    progressFill.style.width = "0%";
+                    alert("Audio files uploaded successfully!");
+                }, 1000);
+                
+            } catch (error) {
+                clearInterval(progressInterval);
+                loadingContainer.style.display = "none";
+                uploadButton.classList.remove("button-loading");
+                uploadButton.disabled = false;
+                progressFill.style.width = "0%";
+                alert("Upload error: " + error.message);
+            }
+        }
+
+        function displayUploadedFiles() {
+            let html = "";
+            uploadedFiles.forEach((f, i) => {
+                html += `<div style="margin: 5px 0; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                    <input type="checkbox" value="${i}" id="file-${i}">
+                    <label for="file-${i}">${f.originalName} (${Math.round(f.duration)}s, ${Math.round(f.size/1024)}KB)</label>
+                </div>`;
+            });
+            document.getElementById("fileList").innerHTML = html;
+        }
+
+        async function loadUserFiles() {
+            try {
+                const res = await fetch("/api/audio/files", {
+                    headers: { "user-key": currentUserKey }
+                });
+                
+                if (res.ok) {
+                    uploadedFiles = await res.json();
+                    displayUploadedFiles();
+                    loadOutputFiles();
+                    loadUserImages(); // Also load images
+                }
+            } catch (error) {
+                console.error("Failed to load files:", error);
+            }
+        }
+
+        async function loadOutputFiles() {
+            try {
+                const res = await fetch("/api/audio/outputs", {
+                    headers: { "user-key": currentUserKey }
+                });
+                
+                if (res.ok) {
+                    const outputs = await res.json();
+                    displayOutputFiles(outputs);
+                }
+            } catch (error) {
+                console.error("Failed to load outputs:", error);
+            }
+        }
+
+        function displayOutputFiles(outputs) {
+            let html = "<h4>Output Files:</h4>";
+            outputs.forEach((f, i) => {
+                const timeInfo = f.operation === 'cut' ? 
+                    ` (${f.cutStartTime}s - ${f.cutEndTime}s)` : 
+                    ` (merged ${f.sourceFiles?.length || 0} files)`;
+                    
+                html += `<div style="margin: 5px 0; padding: 10px; border: 1px solid #28a745; border-radius: 5px; background: #f8fff9;">
+                    <div>${f.originalName}${timeInfo}</div>
+                    <button onclick="downloadFile('${f._id}')" style="width: auto; padding: 5px 10px; margin-top: 5px;" class="blue">Download</button>
+                </div>`;
+            });
+            
+            const outputDiv = document.getElementById("outputFiles");
+            if (!outputDiv) {
+                const div = document.createElement("div");
+                div.id = "outputFiles";
+                div.className = "card";
+                div.innerHTML = html;
+                document.getElementById("dashboard").appendChild(div);
+            } else {
+                outputDiv.innerHTML = html;
+            }
+        }
+
+        async function downloadFile(fileId) {
+            try {
+                const res = await fetch(`/api/audio/download/${fileId}`, {
+                    headers: { "user-key": currentUserKey }
+                });
+                
+                if (res.ok) {
+                    const data = await res.json();
+                    const a = document.createElement("a");
+                    a.href = data.url;
+                    a.download = data.name;
+                    a.target = "_blank";
+                    a.click();
+                } else {
+                    alert("Download failed");
+                }
+            } catch (error) {
+                alert("Download error: " + error.message);
+            }
+        }
+
+        /* CUT */
+        let selectedAudioForCut = null;
+
+        function setupCutAudioPlayer() {
+            const checkboxes = document.querySelectorAll("input[type=checkbox]");
+            const audioPlayer = document.getElementById("cutAudio");
+            const audioInfo = document.getElementById("cutAudioInfo");
+            const startInput = document.getElementById("start");
+            const endInput = document.getElementById("end");
+
+            // Find currently selected checkbox
+            let selectedCheckbox = null;
+            checkboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    selectedCheckbox = checkbox;
+                }
+            });
+
+            // If no checkbox is selected, select the first one
+            if (!selectedCheckbox && checkboxes.length > 0) {
+                checkboxes[0].checked = true;
+                selectedCheckbox = checkboxes[0];
+            }
+
+            // Load the selected audio file immediately
+            if (selectedCheckbox) {
+                const fileIndex = selectedCheckbox.value;
+                const file = uploadedFiles[fileIndex];
+                
+                if (file) {
+                    selectedAudioForCut = file;
+                    // Use cloudinaryUrl if url is not available
+                    const audioUrl = file.url || file.cloudinaryUrl;
+                    audioPlayer.src = audioUrl;
+                    audioInfo.innerHTML = `<strong>${file.originalName}</strong><br>Duration: ${Math.round(file.duration)}s | Size: ${Math.round(file.size/1024)}KB`;
+                    
+                    // Set max values for time inputs
+                    startInput.max = file.duration;
+                    endInput.max = file.duration;
+                    
+                    console.log('Audio loaded:', file.originalName, 'URL:', audioUrl, 'Duration:', file.duration);
+                }
+            } else {
+                audioInfo.innerHTML = '<span style="color: red;">No audio file selected. Please go back and select an audio file.</span>';
+            }
+
+            // Add event listeners for checkbox changes
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        // Uncheck other checkboxes
+                        checkboxes.forEach(cb => {
+                            if (cb !== this) cb.checked = false;
+                        });
+                        
+                        // Load the selected audio file
+                        const fileIndex = this.value;
+                        const file = uploadedFiles[fileIndex];
+                        
+                        if (file) {
+                            selectedAudioForCut = file;
+                            // Use cloudinaryUrl if url is not available
+                            const audioUrl = file.url || file.cloudinaryUrl;
+                            audioPlayer.src = audioUrl;
+                            audioInfo.innerHTML = `<strong>${file.originalName}</strong><br>Duration: ${Math.round(file.duration)}s | Size: ${Math.round(file.size/1024)}KB`;
+                            
+                            // Set max values for time inputs
+                            startInput.max = file.duration;
+                            endInput.max = file.duration;
+                            
+                            console.log('Audio changed:', file.originalName, 'URL:', audioUrl);
+                        }
+                    }
+                });
+            });
+        }
+
+        async function cut() {
+            // Use the selected audio file
+            const fileToCut = selectedAudioForCut || uploadedFiles[document.querySelector("input[type=checkbox]:checked")?.value];
+            
+            if (!fileToCut) {
+                return alert("No audio file selected. Please go back to dashboard and select an audio file.");
+            }
+
+            let start = document.getElementById("start").value;
+            let end = document.getElementById("end").value;
+
+            if (start === "" || end === "") return alert("Enter start and end time");
+            
+            // Validate time values
+            const startTime = parseFloat(start);
+            const endTime = parseFloat(end);
+            
+            if (isNaN(startTime) || isNaN(endTime)) {
+                return alert("Please enter valid numbers for start and end times");
+            }
+            
+            if (startTime < 0 || endTime < 0) {
+                return alert("Time values cannot be negative");
+            }
+            
+            if (startTime >= endTime) {
+                return alert("Start time must be less than end time");
+            }
+            
+            if (endTime > fileToCut.duration) {
+                return alert(`End time cannot exceed file duration (${Math.round(fileToCut.duration)}s)`);
+            }
+
+            // Show loading animation
+            const loadingContainer = document.getElementById("cutLoadingContainer");
+            const progressFill = document.getElementById("cutProgressFill");
+            const loadingText = document.getElementById("cutLoadingText");
+            const cutButton = document.getElementById("cutButton");
+            
+            loadingContainer.style.display = "block";
+            cutButton.classList.add("button-loading");
+            cutButton.disabled = true;
+
+            // Simulate progress animation
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress > 90) progress = 90;
+                progressFill.style.width = progress + "%";
+                
+                if (progress < 30) {
+                    loadingText.textContent = "Processing audio file...";
+                } else if (progress < 60) {
+                    loadingText.textContent = "Cutting audio segment...";
+                } else {
+                    loadingText.textContent = "Uploading to cloud...";
+                }
+            }, 500);
+
+            try {
+                // Use cloudinaryUrl if url is not available
+                const audioUrl = fileToCut.url || fileToCut.cloudinaryUrl;
+                
+                let res = await fetch("/api/audio/cut", {
+                    method: "POST",
+                    headers: { 
+                        "Content-Type": "application/json",
+                        "user-key": currentUserKey
+                    },
+                    body: JSON.stringify({
+                        url: audioUrl,
+                        start: startTime,
+                        end: endTime
+                    })
+                });
+
+                clearInterval(progressInterval);
+                progressFill.style.width = "100%";
+                loadingText.textContent = "Finalizing...";
+
+                if (!res.ok) {
+                    const error = await res.json();
+                    throw new Error(error.message || "Cut failed");
+                }
+
+                const result = await res.json();
+                
+                setTimeout(() => {
+                    loadingContainer.style.display = "none";
+                    cutButton.classList.remove("button-loading");
+                    cutButton.disabled = false;
+                    progressFill.style.width = "0%";
+                    alert("Audio cut successfully! Check output files section.");
+                    loadOutputFiles();
+                    navigate("dashboard");
+                }, 1000);
+                
+            } catch (error) {
+                clearInterval(progressInterval);
+                loadingContainer.style.display = "none";
+                cutButton.classList.remove("button-loading");
+                cutButton.disabled = false;
+                progressFill.style.width = "0%";
+                alert("Cut error: " + error.message);
+            }
+        }
+
+        /* MERGE */
+        function setupMergeAudioPlayer() {
+            const checkboxes = document.querySelectorAll("input[type=checkbox]");
+            const selectedAudioList = document.getElementById("selectedAudioList");
+            const mergeAudioControls = document.getElementById("mergeAudioControls");
+            const audioPlayer = document.getElementById("mergeAudio");
+            const audioInfo = document.getElementById("mergeAudioInfo");
+
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    updateSelectedAudioList();
+                });
+            });
+
+            function updateSelectedAudioList() {
+                const selected = document.querySelectorAll("input[type=checkbox]:checked");
+                
+                if (selected.length === 0) {
+                    selectedAudioList.innerHTML = '<p style="color: #666;">No audio files selected</p>';
+                    mergeAudioControls.style.display = 'none';
+                    return;
+                }
+
+                let html = '<div style="margin: 10px 0;">';
+                selected.forEach((checkbox, index) => {
+                    const file = uploadedFiles[checkbox.value];
+                    html += `<div style="padding: 8px; margin: 5px 0; background: #f0f8ff; border-radius: 5px; cursor: pointer;" onclick="playMergeAudio(${checkbox.value})">
+                        <strong>${index + 1}. ${file.originalName}</strong><br>
+                        <small>Duration: ${Math.round(file.duration)}s | Size: ${Math.round(file.size/1024)}KB</small>
+                    </div>`;
+                });
+                html += '</div>';
+                
+                selectedAudioList.innerHTML = html;
+                mergeAudioControls.style.display = 'block';
+                
+                // Load first selected file by default
+                if (selected.length > 0) {
+                    playMergeAudio(selected[0].value);
+                }
+            }
+        }
+
+        function playMergeAudio(fileIndex) {
+            const file = uploadedFiles[fileIndex];
+            const audioPlayer = document.getElementById("mergeAudio");
+            const audioInfo = document.getElementById("mergeAudioInfo");
+            
+            // Use cloudinaryUrl if url is not available
+            const audioUrl = file.url || file.cloudinaryUrl;
+            audioPlayer.src = audioUrl;
+            audioInfo.innerHTML = `<strong>${file.originalName}</strong><br>Duration: ${Math.round(file.duration)}s | Size: ${Math.round(file.size/1024)}KB`;
+            
+            console.log('Merge audio loaded:', file.originalName, 'URL:', audioUrl);
+        }
+
+        async function merge() {
+            let selected = document.querySelectorAll("input[type=checkbox]:checked");
+
+            if (selected.length < 2) return alert("Select at least 2 files to merge");
+
+            let urls = [];
+            selected.forEach(s => {
+                const file = uploadedFiles[s.value];
+                // Use cloudinaryUrl if url is not available
+                const audioUrl = file.url || file.cloudinaryUrl;
+                urls.push(audioUrl);
+            });
+
+            // Show loading animation
+            const loadingContainer = document.getElementById("mergeLoadingContainer");
+            const progressFill = document.getElementById("mergeProgressFill");
+            const loadingText = document.getElementById("mergeLoadingText");
+            const mergeButton = document.getElementById("mergeButton");
+            
+            loadingContainer.style.display = "block";
+            mergeButton.classList.add("button-loading");
+            mergeButton.disabled = true;
+
+            // Simulate progress animation
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 12;
+                if (progress > 90) progress = 90;
+                progressFill.style.width = progress + "%";
+                
+                if (progress < 25) {
+                    loadingText.textContent = "Preparing audio files...";
+                } else if (progress < 50) {
+                    loadingText.textContent = "Merging audio files...";
+                } else if (progress < 75) {
+                    loadingText.textContent = "Processing merged audio...";
+                } else {
+                    loadingText.textContent = "Uploading to cloud...";
+                }
+            }, 600);
+
+            try {
+                let res = await fetch("/api/audio/merge", {
+                    method: "POST",
+                    headers: { 
+                        "Content-Type": "application/json",
+                        "user-key": currentUserKey
+                    },
+                    body: JSON.stringify({ urls })
+                });
+
+                clearInterval(progressInterval);
+                progressFill.style.width = "100%";
+                loadingText.textContent = "Finalizing...";
+
+                if (!res.ok) {
+                    const error = await res.json();
+                    throw new Error(error.message || "Merge failed");
+                }
+
+                const result = await res.json();
+                
+                setTimeout(() => {
+                    loadingContainer.style.display = "none";
+                    mergeButton.classList.remove("button-loading");
+                    mergeButton.disabled = false;
+                    progressFill.style.width = "0%";
+                    alert("Audio merged successfully! Check output files section.");
+                    loadOutputFiles();
+                    navigate("dashboard");
+                }, 1000);
+                
+            } catch (error) {
+                clearInterval(progressInterval);
+                loadingContainer.style.display = "none";
+                mergeButton.classList.remove("button-loading");
+                mergeButton.disabled = false;
+                progressFill.style.width = "0%";
+                alert("Merge error: " + error.message);
+            }
+        }
+
+        /* IMAGE FUNCTIONS */
+        async function uploadImages() {
+            let files = document.getElementById("imageFiles").files;
+            if (files.length === 0) return alert("Please select images");
+
+            // Show loading animation
+            const loadingContainer = document.getElementById("imageUploadLoading");
+            const progressFill = document.getElementById("imageUploadProgress");
+            const loadingText = document.getElementById("imageUploadText");
+            const uploadButton = document.getElementById("imageUploadButton");
+            
+            loadingContainer.style.display = "block";
+            uploadButton.classList.add("button-loading");
+            uploadButton.disabled = true;
+
+            // Simulate progress animation
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 12;
+                if (progress > 85) progress = 85;
+                progressFill.style.width = progress + "%";
+                
+                if (progress < 25) {
+                    loadingText.textContent = "Preparing images...";
+                } else if (progress < 50) {
+                    loadingText.textContent = "Uploading to cloud...";
+                } else if (progress < 75) {
+                    loadingText.textContent = "Processing images...";
+                } else {
+                    loadingText.textContent = "Saving to database...";
+                }
+            }, 450);
+
+            let formData = new FormData();
+            for (let f of files) formData.append("images", f);
+
+            try {
+                let res = await fetch("/api/images/upload", {
+                    method: "POST",
+                    headers: { "user-key": currentUserKey },
+                    body: formData
+                });
+
+                clearInterval(progressInterval);
+                progressFill.style.width = "100%";
+                loadingText.textContent = "Finalizing...";
+
+                if (!res.ok) {
+                    const error = await res.json();
+                    throw new Error(error.message || "Image upload failed");
+                }
+
+                const newImages = await res.json();
+                uploadedImages = uploadedImages.concat(newImages);
+                displayUploadedImages();
+                displayDashboardImages();
+                
+                setTimeout(() => {
+                    loadingContainer.style.display = "none";
+                    uploadButton.classList.remove("button-loading");
+                    uploadButton.disabled = false;
+                    progressFill.style.width = "0%";
+                    alert("Images uploaded successfully!");
+                }, 1000);
+                
+            } catch (error) {
+                clearInterval(progressInterval);
+                loadingContainer.style.display = "none";
+                uploadButton.classList.remove("button-loading");
+                uploadButton.disabled = false;
+                progressFill.style.width = "0%";
+                alert("Image upload error: " + error.message);
+            }
+        }
+
+        function displayUploadedImages() {
+            let html = "";
+            uploadedImages.forEach((img, i) => {
+                html += `<div style="margin: 5px 0; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                    <input type="checkbox" value="${i}" id="img-${i}">
+                    <label for="img-${i}">${img.originalName} (${img.width}x${img.height}, ${Math.round(img.size/1024)}KB)</label>
+                </div>`;
+            });
+            document.getElementById("imageFileList").innerHTML = html;
+        }
+
+        function displayDashboardImages() {
+            let html = "";
+            if (uploadedImages.length === 0) {
+                html = "<p>No images uploaded yet.</p>";
+            } else {
+                uploadedImages.forEach((img, i) => {
+                    html += `<div style="margin: 5px 0; padding: 10px; border: 1px solid #17a2b8; border-radius: 5px; background: #f0f8ff;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <img src="${img.cloudinaryUrl}" alt="${img.originalName}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px;">
+                            <div style="flex: 1;">
+                                <div><strong>${img.originalName}</strong></div>
+                                <div style="font-size: 12px; color: #666;">${img.width}x${img.height} (${Math.round(img.size/1024)}KB)</div>
+                            </div>
+                            <button onclick="deleteImage('${img._id}')" style="background: #dc3545; color: white; width: auto; padding: 5px 10px;">Delete</button>
+                        </div>
+                    </div>`;
+                });
+            }
+            document.getElementById("uploadedImageList").innerHTML = html;
+        }
+
+        async function loadUserImages() {
+            try {
+                const res = await fetch("/api/images/files", {
+                    headers: { "user-key": currentUserKey }
+                });
+                
+                if (res.ok) {
+                    uploadedImages = await res.json();
+                    displayUploadedImages();
+                    displayDashboardImages();
+                }
+            } catch (error) {
+                console.error("Failed to load images:", error);
+            }
+        }
+
+        function displayCloudImages() {
+            let html = "";
+            if (uploadedImages.length === 0) {
+                html = "<p>No images uploaded yet.</p>";
+            } else {
+                uploadedImages.forEach((img, i) => {
+                    html += `<div style="margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 5px; display: flex; align-items: center; gap: 10px;">
+                        <img src="${img.cloudinaryUrl}" alt="${img.originalName}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 5px;">
+                        <div style="flex: 1;">
+                            <div><strong>${img.originalName}</strong></div>
+                            <div style="font-size: 12px; color: #666;">${img.width}x${img.height} (${Math.round(img.size/1024)}KB)</div>
+                        </div>
+                        <button onclick="deleteImage('${img._id}')" style="background: #dc3545; color: white; width: auto; padding: 5px 10px;">Delete</button>
+                    </div>`;
+                });
+            }
+            document.getElementById("imageList").innerHTML = html;
+        }
+
+        async function deleteImage(imageId) {
+            if (!confirm("Are you sure you want to delete this image?")) return;
+
+            try {
+                const res = await fetch(`/api/images/delete/${imageId}`, {
+                    method: "DELETE",
+                    headers: { "user-key": currentUserKey }
+                });
+                
+                if (res.ok) {
+                    uploadedImages = uploadedImages.filter(img => img._id !== imageId);
+                    displayCloudImages();
+                    alert("Image deleted successfully!");
+                } else {
+                    const error = await res.json();
+                    alert(error.message || "Delete failed");
+                }
+            } catch (error) {
+                alert("Delete error: " + error.message);
+            }
+        }
+
+        function clearAudioFiles() {
+            if (!confirm("Are you sure you want to clear all uploaded audio files from this screen?")) return;
+            
+            uploadedFiles = [];
+            document.getElementById("fileList").innerHTML = "";
+            document.getElementById("files").value = "";
+            alert("Audio files cleared from screen!");
+        }
+
+        // Toggle expandable sections
+        function toggleExpand(sectionId) {
+            const content = document.getElementById(sectionId);
+            const arrow = document.getElementById(sectionId + '-arrow');
+            
+            if (content.classList.contains('show')) {
+                content.classList.remove('show');
+                arrow.classList.remove('down');
+            } else {
+                content.classList.add('show');
+                arrow.classList.add('down');
+            }
+        }
+
+        // Update navigation to handle cloud images
+        function navigate(id) {
+            let current = getCurrentSection();
+            if (current) historyStack.push(current);
+
+            show(id);
+
+            if (id === 'cloudImages') {
+                loadUserImages();
+                setTimeout(() => displayCloudImages(), 100);
+            } else if (id === 'cutSection') {
+                // Delay to ensure DOM is ready
+                setTimeout(() => setupCutAudioPlayer(), 300);
+            } else if (id === 'joinSection') {
+                setTimeout(() => setupMergeAudioPlayer(), 300);
+            }
+        }
+    </script>
+
+</body>
+
+</html>
