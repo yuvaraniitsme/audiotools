@@ -33,7 +33,22 @@ console.log("CLOUDINARY_CLOUD_NAME exists:", !!process.env.CLOUDINARY_CLOUD_NAME
 
 // MongoDB Connection with better error handling
 mongoose.connect(process.env.MONGO_URI)
-.then(() => console.log("MongoDB Connected"))
+.then(async () => {
+    console.log("MongoDB Connected");
+    
+    // Drop old email index if it exists (from previous schema)
+    try {
+        const db = mongoose.connection.db;
+        const collections = await db.listCollections({ name: 'users' }).toArray();
+        if (collections.length > 0) {
+            await db.collection('users').dropIndex('email_1');
+            console.log('Dropped old email index');
+        }
+    } catch (err) {
+        // Index might not exist, which is fine
+        console.log('Email index cleanup:', err.message || 'No old index to drop');
+    }
+})
 .catch(err => {
     console.error("MongoDB Connection Error:", err.message);
     process.exit(1);
