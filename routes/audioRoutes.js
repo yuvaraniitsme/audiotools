@@ -101,12 +101,15 @@ router.get("/files", async (req, res) => {
 
 router.post("/cut", async (req, res) => {
     try {
+        console.log('Cut request received');
         const userKey = req.headers['user-key'];
         if (!userKey) {
+            console.log('No user key provided');
             return res.status(401).json({ message: 'User key required' });
         }
 
         const { url, start, end } = req.body;
+        console.log('Cut params:', { url: url?.substring(0, 50) + '...', start, end });
         
         if (!url || start === undefined || end === undefined) {
             return res.status(400).json({ message: 'URL, start time, and end time required' });
@@ -114,13 +117,16 @@ router.post("/cut", async (req, res) => {
 
         const tempDir = path.join(__dirname, '../temp');
         if (!fs.existsSync(tempDir)) {
+            console.log('Creating temp directory:', tempDir);
             fs.mkdirSync(tempDir, { recursive: true });
         }
 
         const inputPath = path.join(tempDir, `input-${Date.now()}.mp3`);
         const outputPath = path.join(tempDir, `cut-${Date.now()}.mp3`);
 
+        console.log('Starting audio cut...');
         await AudioProcessor.cutAudio(url, parseFloat(start), parseFloat(end), outputPath);
+        console.log('Audio cut completed');
 
         const result = await cloudinary.uploader.upload(outputPath, {
             resource_type: "video",
@@ -144,6 +150,7 @@ router.post("/cut", async (req, res) => {
         AudioProcessor.cleanup(inputPath);
         AudioProcessor.cleanup(outputPath);
 
+        console.log('Cut operation completed successfully');
         res.json({
             id: outputFile._id,
             url: outputFile.cloudinaryUrl,
@@ -152,18 +159,23 @@ router.post("/cut", async (req, res) => {
             duration: outputFile.duration
         });
     } catch (error) {
-        res.status(500).json({ message: 'Cut failed', error: error.message });
+        console.error('Cut operation error:', error);
+        console.error('Error stack:', error.stack);
+        res.status(500).json({ message: 'Cut failed', error: error.message, stack: error.stack });
     }
 });
 
 router.post("/merge", async (req, res) => {
     try {
+        console.log('Merge request received');
         const userKey = req.headers['user-key'];
         if (!userKey) {
+            console.log('No user key provided');
             return res.status(401).json({ message: 'User key required' });
         }
 
         const { urls } = req.body;
+        console.log('Merge URLs count:', urls?.length);
         
         if (!urls || urls.length < 2) {
             return res.status(400).json({ message: 'At least 2 URLs required for merging' });
@@ -171,12 +183,15 @@ router.post("/merge", async (req, res) => {
 
         const tempDir = path.join(__dirname, '../temp');
         if (!fs.existsSync(tempDir)) {
+            console.log('Creating temp directory:', tempDir);
             fs.mkdirSync(tempDir, { recursive: true });
         }
 
         const outputPath = path.join(tempDir, `merged-${Date.now()}.mp3`);
 
+        console.log('Starting audio merge...');
         await AudioProcessor.joinAudio(urls, outputPath);
+        console.log('Audio merge completed');
 
         const result = await cloudinary.uploader.upload(outputPath, {
             resource_type: "video",
@@ -199,6 +214,7 @@ router.post("/merge", async (req, res) => {
 
         AudioProcessor.cleanup(outputPath);
 
+        console.log('Merge operation completed successfully');
         res.json({
             id: outputFile._id,
             url: outputFile.cloudinaryUrl,
@@ -206,7 +222,9 @@ router.post("/merge", async (req, res) => {
             operation: outputFile.operation
         });
     } catch (error) {
-        res.status(500).json({ message: 'Merge failed', error: error.message });
+        console.error('Merge operation error:', error);
+        console.error('Error stack:', error.stack);
+        res.status(500).json({ message: 'Merge failed', error: error.message, stack: error.stack });
     }
 });
 
