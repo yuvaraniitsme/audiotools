@@ -7,7 +7,21 @@ const path = require("path");
 dotenv.config();
 
 const app = express();
-app.use(cors());
+
+// Configure CORS to allow both localhost and production URL
+const corsOptions = {
+    origin: [
+        'http://localhost:5000',
+        'http://localhost:3000',
+        'https://audiotoolsbygoogle.onrender.com',
+        'https://audiotoolsbygoogle.onrender.com/'
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'user-key'],
+    credentials: true
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.static("public"));
 
