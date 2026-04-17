@@ -59,10 +59,138 @@
             display: none;
         }
 
-        .grid {
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .dashboard-box {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            min-height: 300px;
+        }
+
+        .dashboard-box h4 {
+            margin: 0 0 15px 0;
+            color: #333;
+            font-size: 18px;
+            text-align: left;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+
+        .drag-drop-area {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #fafafa;
+            margin-bottom: 15px;
+        }
+
+        .drag-drop-area:hover {
+            border-color: #007bff;
+            background: #f0f7ff;
+        }
+
+        .drag-drop-area .plus-icon {
+            width: 50px;
+            height: 50px;
+            background: #5b9bd5;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            color: white;
+            font-size: 28px;
+        }
+
+        .drag-drop-text {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .file-list-container {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+        }
+
+        .file-item:last-child {
+            border-bottom: none;
+        }
+
+        .file-item input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+            margin-top: 0;
+        }
+
+        .file-item .play-btn {
+            width: auto;
+            padding: 5px 10px;
+            margin: 0 0 0 auto;
+            background: #28a745;
+            font-size: 12px;
+        }
+
+        .file-item .file-name {
+            flex: 1;
+            font-size: 14px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .cut-controls {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
+            margin: 15px 0;
+        }
+
+        .cut-controls input {
+            margin-top: 0;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .action-buttons button {
+            flex: 1;
+            margin-top: 0;
+        }
+
+        .audio-player-inline {
+            margin: 15px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .audio-player-inline audio {
+            width: 100%;
         }
 
         .backBtn {
@@ -92,6 +220,10 @@
 
         .arrow.down {
             transform: rotate(90deg);
+        }
+
+        .hidden-file-input {
+            display: none;
         }
 
         .loading-container {
@@ -179,7 +311,7 @@
             <div class="card">
                 <h2>WELCOME TO AUDIO TOOLS</h2>
                 <button class="blue" onclick="navigate('login')">LOGIN 🔑</button>
-                <a href="/admin.html" style="display: block; margin-top: 15px; color: #666; font-size: 14px; text-decoration: none;">🔐 Admin Panel</a>
+               <!-- <a href="/admin.html" style="display: block; margin-top: 15px; color: #666; font-size: 14px; text-decoration: none;">🔐 Admin Panel</a> -->
                 <button class="orange" onclick="navigate('create')">CREATE KEY +</button>
             </div>
         </div>
@@ -208,141 +340,153 @@
         <div id="dashboard" class="section">
             <h3>DASHBOARD</h3>
 
-            <div class="grid">
-                <div class="card dark" onclick="navigate('cutSection')">
-                    AUDIO CUTTER &#9986;
-                </div>
-
-                <div class="card dark" onclick="navigate('joinSection')">
-                    AUDIO JOINER &#128266;
-                </div>
-            </div>
-
-            <div class="card">
-                <h4>Audio Files</h4>
-                <input type="file" multiple id="files" accept="audio/*">
-                <button id="audioUploadButton" class="blue" onclick="upload()">Upload Audio Files</button>
-                
-                <div id="audioUploadLoading" class="loading-container" style="display: none;">
-                    <div class="loading-spinner"></div>
-                    <div class="progress-bar">
-                        <div id="audioUploadProgress" class="progress-fill"></div>
-                    </div>
-                    <div id="audioUploadText" class="loading-text">Uploading audio files...</div>
-                </div>
-                
-                <button onclick="clearAudioFiles()" style="background: #dc3545; width: auto; padding: 12px 20px; margin-top: 10px;">Clear All</button>
-                <div id="fileList"></div>
-            </div>
-
-            <div class="card">
-                <h4 class="expandable orange" onclick="toggleExpand('imageInputSection')">
-                    <span class="arrow" id="imageInputSection-arrow">></span> Images - Upload
-                </h4>
-                <div id="imageInputSection" class="expandable-content">
-                    <input type="file" multiple id="imageFiles" accept="image/*">
-                    <button id="imageUploadButton" class="blue" onclick="uploadImages()">Upload Images</button>
+            <div class="dashboard-grid">
+                <!-- Row 1: Audio Cutter -->
+                <div class="dashboard-box">
+                    <h4>✂️ Audio Cutter</h4>
                     
-                    <div id="imageUploadLoading" class="loading-container" style="display: none;">
+                    <!-- Drag & Drop Upload -->
+                    <div class="drag-drop-area" onclick="document.getElementById('cutterFiles').click()">
+                        <div class="plus-icon">+</div>
+                        <div class="drag-drop-text">Drag & Drop Audio Files<br>or Click to Upload</div>
+                    </div>
+                    <input type="file" multiple id="cutterFiles" class="hidden-file-input" accept="audio/*" onchange="uploadToSection(this, 'cutter')">
+                    
+                    <!-- Upload Loading -->
+                    <div id="cutterUploadLoading" class="loading-container" style="display: none;">
                         <div class="loading-spinner"></div>
                         <div class="progress-bar">
-                            <div id="imageUploadProgress" class="progress-fill"></div>
+                            <div id="cutterUploadProgress" class="progress-fill"></div>
                         </div>
-                        <div id="imageUploadText" class="loading-text">Uploading images...</div>
+                        <div class="loading-text">Uploading...</div>
                     </div>
                     
-                    <div id="imageFileList"></div>
+                    <!-- File List with Checkboxes -->
+                    <div class="file-list-container" id="cutterFileList">
+                        <p style="color: #666; text-align: center;">No files uploaded yet</p>
+                    </div>
+                    
+                    <!-- Audio Player -->
+                    <div class="audio-player-inline">
+                        <audio id="cutterPlayer" controls>
+                            <source src="" type="audio/mpeg">
+                        </audio>
+                    </div>
+                    
+                    <!-- Cut Controls -->
+                    <div class="cut-controls">
+                        <input type="number" id="cutStart" placeholder="Start (sec)" step="0.1">
+                        <input type="number" id="cutEnd" placeholder="End (sec)" step="0.1">
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <button class="blue" onclick="cutSelected()">✂️ Cut</button>
+                        <button onclick="clearCutterSelection()" style="background: #dc3545; color: white;">Clear</button>
+                    </div>
+                </div>
+
+                <!-- Row 1: Audio Joiner -->
+                <div class="dashboard-box">
+                    <h4>🔊 Audio Joiner</h4>
+                    
+                    <!-- Drag & Drop Upload -->
+                    <div class="drag-drop-area" onclick="document.getElementById('joinerFiles').click()">
+                        <div class="plus-icon">+</div>
+                        <div class="drag-drop-text">Drag & Drop Audio Files<br>or Click to Upload</div>
+                    </div>
+                    <input type="file" multiple id="joinerFiles" class="hidden-file-input" accept="audio/*" onchange="uploadToSection(this, 'joiner')">
+                    
+                    <!-- Upload Loading -->
+                    <div id="joinerUploadLoading" class="loading-container" style="display: none;">
+                        <div class="loading-spinner"></div>
+                        <div class="progress-bar">
+                            <div id="joinerUploadProgress" class="progress-fill"></div>
+                        </div>
+                        <div class="loading-text">Uploading...</div>
+                    </div>
+                    
+                    <!-- File List with Checkboxes -->
+                    <div class="file-list-container" id="joinerFileList">
+                        <p style="color: #666; text-align: center;">No files uploaded yet</p>
+                    </div>
+                    
+                    <!-- Audio Player -->
+                    <div class="audio-player-inline">
+                        <audio id="joinerPlayer" controls>
+                            <source src="" type="audio/mpeg">
+                        </audio>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <button class="blue" onclick="mergeSelected()">🔊 Join</button>
+                        <button onclick="clearJoinerSelection()" style="background: #dc3545; color: white;">Clear</button>
+                    </div>
+                </div>
+
+                <!-- Row 2: Input Files -->
+                <div class="dashboard-box">
+                    <h4>📁 Input Files</h4>
+                    
+                    <div class="file-list-container" id="inputFilesList" style="max-height: 250px;">
+                        <p style="color: #666; text-align: center;">No input files</p>
+                    </div>
+                    
+                    <button onclick="loadAllInputFiles()" class="blue" style="margin-top: 15px;">🔄 Refresh</button>
+                </div>
+
+                <!-- Row 2: Output Files -->
+                <div class="dashboard-box">
+                    <h4>📤 Output Files</h4>
+                    
+                    <div class="file-list-container" id="outputFilesList" style="max-height: 250px;">
+                        <p style="color: #666; text-align: center;">No output files</p>
+                    </div>
+                    
+                    <button onclick="loadAllOutputFiles()" class="blue" style="margin-top: 15px;">🔄 Refresh</button>
+                </div>
+
+                <!-- Row 3: Upload Images -->
+                <div class="dashboard-box">
+                    <h4>🖼️ Upload Images</h4>
+                    
+                    <!-- Drag & Drop Upload -->
+                    <div class="drag-drop-area" onclick="document.getElementById('dashImageFiles').click()">
+                        <div class="plus-icon">+</div>
+                        <div class="drag-drop-text">Drag & Drop Images<br>or Click to Upload</div>
+                    </div>
+                    <input type="file" multiple id="dashImageFiles" class="hidden-file-input" accept="image/*" onchange="uploadImagesFromDash()">
+                    
+                    <!-- Upload Loading -->
+                    <div id="dashImageUploadLoading" class="loading-container" style="display: none;">
+                        <div class="loading-spinner"></div>
+                        <div class="progress-bar">
+                            <div id="dashImageUploadProgress" class="progress-fill"></div>
+                        </div>
+                        <div class="loading-text">Uploading images...</div>
+                    </div>
+                    
+                    <div class="file-list-container" id="dashImageList">
+                        <p style="color: #666; text-align: center;">No images uploaded</p>
+                    </div>
+                </div>
+
+                <!-- Row 3: Cloud Images -->
+                <div class="dashboard-box">
+                    <h4>☁️ Cloud Images</h4>
+                    
+                    <div class="file-list-container" id="cloudImageList" style="max-height: 250px;">
+                        <p style="color: #666; text-align: center;">No cloud images</p>
+                    </div>
+                    
+                    <button onclick="loadCloudImages()" class="blue" style="margin-top: 15px;">🔄 Refresh</button>
                 </div>
             </div>
 
-            <div class="card">
-                <h4 class="expandable orange" onclick="toggleExpand('imageOutputSection')">
-                    <span class="arrow" id="imageOutputSection-arrow">></span> Images - Cloud Storage
-                </h4>
-                <div id="imageOutputSection" class="expandable-content">
-                    <button class="orange" onclick="navigate('cloudImages')" style="width: auto; padding: 12px 20px; margin-top: 10px;">View All Images &#9889;</button>
-                    <div id="uploadedImageList"></div>
-                </div>
-            </div>
-
-            <button class="backBtn" onclick="goBack()">&#x2190 Back</button>
+            <button class="backBtn" onclick="goBack()" style="margin-top: 20px;">&#x2190 Back</button>
         </div>
 
-        <!-- CUT -->
-        <div id="cutSection" class="section">
-            <div class="card">
-                <h3>Audio Cutter</h3>
-
-                <div id="cutAudioPlayer" style="margin: 15px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: #f9f9f9;">
-                    <h4>Audio Player</h4>
-                    <audio id="cutAudio" controls style="width: 100%; margin: 10px 0;">
-                        Your browser does not support the audio element.
-                    </audio>
-                    <div id="cutAudioInfo" style="font-size: 14px; color: #666; margin-top: 5px;">
-                        Select an audio file to play
-                    </div>
-                    <button onclick="setupCutAudioPlayer()" style="width: auto; padding: 8px 15px; margin-top: 10px; background: #6c757d; color: white;">🔄 Refresh Audio</button>
-                </div>
-
-                <input type="number" id="start" placeholder="Start (sec)" step="0.1">
-                <input type="number" id="end" placeholder="End (sec)" step="0.1">
-
-                <div id="cutLoadingContainer" class="loading-container" style="display: none;">
-                    <div class="loading-spinner"></div>
-                    <div class="progress-bar">
-                        <div id="cutProgressFill" class="progress-fill"></div>
-                    </div>
-                    <div id="cutLoadingText" class="loading-text">Processing audio...</div>
-                </div>
-
-                <button id="cutButton" class="blue" onclick="cut()">Cut & Download</button>
-                <button class="backBtn" onclick="goBack()">⬅ Back</button>
-            </div>
-        </div>
-
-        <!-- JOIN -->
-        <div id="joinSection" class="section">
-            <div class="card">
-                <h3>Audio Joiner</h3>
-
-                <div id="mergeAudioList" style="margin: 15px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: #f9f9f9; max-height: 300px; overflow-y: auto;">
-                    <h4>Select Audio Files to Merge</h4>
-                    <div id="mergeFileList" style="margin: 10px 0;">
-                        <p style="color: #666;">Loading audio files...</p>
-                    </div>
-                </div>
-
-                <div id="mergeAudioPlayer" style="margin: 15px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: #f9f9f9;">
-                    <h4>Audio Player</h4>
-                    <audio id="mergeAudio" controls style="width: 100%; margin: 10px 0;">
-                        Your browser does not support the audio element.
-                    </audio>
-                    <div id="mergeAudioInfo" style="font-size: 14px; color: #666; margin-top: 5px;">
-                        Select an audio file to play preview
-                    </div>
-                </div>
-
-                <div id="mergeLoadingContainer" class="loading-container" style="display: none;">
-                    <div class="loading-spinner"></div>
-                    <div class="progress-bar">
-                        <div id="mergeProgressFill" class="progress-fill"></div>
-                    </div>
-                    <div id="mergeLoadingText" class="loading-text">Merging audio files...</div>
-                </div>
-
-                <button id="mergeButton" class="blue" onclick="merge()">Merge & Download</button>
-                <button class="backBtn" onclick="goBack()">&#x2190 Back</button>
-            </div>
-        </div>
-
-        <!-- CLOUD IMAGES -->
-        <div id="cloudImages" class="section">
-            <div class="card">
-                <h3>Cloud Images</h3>
-                <div id="imageList"></div>
-                <button class="backBtn" onclick="goBack()">&#x2190 Back</button>
-            </div>
-        </div>
 
     </div>
 
@@ -1119,15 +1263,343 @@
 
             show(id);
 
-            if (id === 'cloudImages') {
+            if (id === 'dashboard') {
+                loadDashboardData();
+            } else if (id === 'cloudImages') {
                 loadUserImages();
                 setTimeout(() => displayCloudImages(), 100);
             } else if (id === 'cutSection') {
-                // Delay to ensure DOM is ready
                 setTimeout(() => setupCutAudioPlayer(), 300);
             } else if (id === 'joinSection') {
                 setTimeout(() => setupMergeAudioPlayer(), 300);
             }
+        }
+
+        /* DASHBOARD FUNCTIONS */
+        async function loadDashboardData() {
+            await loadUserFiles();
+            await loadUserImages();
+            refreshCutterList();
+            refreshJoinerList();
+            loadAllInputFiles();
+            loadAllOutputFiles();
+            loadCloudImages();
+        }
+
+        function uploadToSection(input, section) {
+            const files = input.files;
+            if (!files.length) return;
+
+            const loadingId = section + 'UploadLoading';
+            const progressId = section + 'UploadProgress';
+            const loadingContainer = document.getElementById(loadingId);
+            const progressFill = document.getElementById(progressId);
+
+            loadingContainer.style.display = 'block';
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += 5;
+                if (progress > 90) progress = 90;
+                progressFill.style.width = progress + '%';
+            }, 200);
+
+            let formData = new FormData();
+            for (let f of files) formData.append('audios', f);
+
+            fetch('/api/audio/upload', {
+                method: 'POST',
+                headers: { 'user-key': currentUserKey },
+                body: formData
+            })
+            .then(res => {
+                clearInterval(progressInterval);
+                if (!res.ok) throw new Error('Upload failed');
+                return res.json();
+            })
+            .then(data => {
+                progressFill.style.width = '100%';
+                setTimeout(() => {
+                    loadingContainer.style.display = 'none';
+                    progressFill.style.width = '0%';
+                    uploadedFiles = uploadedFiles.concat(data);
+                    refreshCutterList();
+                    refreshJoinerList();
+                    loadAllInputFiles();
+                    alert('Upload successful!');
+                }, 500);
+            })
+            .catch(err => {
+                clearInterval(progressInterval);
+                loadingContainer.style.display = 'none';
+                alert('Upload error: ' + err.message);
+            });
+
+            input.value = '';
+        }
+
+        function refreshCutterList() {
+            const list = document.getElementById('cutterFileList');
+            if (uploadedFiles.length === 0) {
+                list.innerHTML = '<p style="color: #666; text-align: center;">No files uploaded yet</p>';
+                return;
+            }
+
+            let html = '';
+            uploadedFiles.forEach((file, index) => {
+                html += `<div class="file-item">
+                    <input type="checkbox" id="cutter-check-${index}" value="${index}" onchange="onCutterSelectionChange()">
+                    <span class="file-name">${file.originalName}</span>
+                    <button class="play-btn" onclick="playInCutter(${index})">▶ Play</button>
+                </div>`;
+            });
+            list.innerHTML = html;
+        }
+
+        function refreshJoinerList() {
+            const list = document.getElementById('joinerFileList');
+            if (uploadedFiles.length === 0) {
+                list.innerHTML = '<p style="color: #666; text-align: center;">No files uploaded yet</p>';
+                return;
+            }
+
+            let html = '';
+            uploadedFiles.forEach((file, index) => {
+                html += `<div class="file-item">
+                    <input type="checkbox" id="joiner-check-${index}" value="${index}">
+                    <span class="file-name">${file.originalName}</span>
+                    <button class="play-btn" onclick="playInJoiner(${index})">▶ Play</button>
+                </div>`;
+            });
+            list.innerHTML = html;
+        }
+
+        function onCutterSelectionChange() {
+            const selected = document.querySelectorAll('#cutterFileList input[type=checkbox]:checked');
+            if (selected.length === 1) {
+                playInCutter(selected[0].value);
+            }
+        }
+
+        function playInCutter(index) {
+            const file = uploadedFiles[index];
+            const player = document.getElementById('cutterPlayer');
+            player.src = file.cloudinaryUrl || file.url;
+            player.play();
+        }
+
+        function playInJoiner(index) {
+            const file = uploadedFiles[index];
+            const player = document.getElementById('joinerPlayer');
+            player.src = file.cloudinaryUrl || file.url;
+            player.play();
+        }
+
+        async function cutSelected() {
+            const selected = document.querySelectorAll('#cutterFileList input[type=checkbox]:checked');
+            if (selected.length !== 1) {
+                alert('Please select exactly one file to cut');
+                return;
+            }
+
+            const fileIndex = selected[0].value;
+            const file = uploadedFiles[fileIndex];
+            const start = document.getElementById('cutStart').value;
+            const end = document.getElementById('cutEnd').value;
+
+            if (!start || !end) {
+                alert('Please enter start and end times');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/audio/cut', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'user-key': currentUserKey
+                    },
+                    body: JSON.stringify({
+                        url: file.cloudinaryUrl || file.url,
+                        start: parseFloat(start),
+                        end: parseFloat(end)
+                    })
+                });
+
+                if (!res.ok) throw new Error('Cut failed');
+
+                alert('Audio cut successfully!');
+                loadAllOutputFiles();
+            } catch (err) {
+                alert('Cut error: ' + err.message);
+            }
+        }
+
+        async function mergeSelected() {
+            const selected = document.querySelectorAll('#joinerFileList input[type=checkbox]:checked');
+            if (selected.length < 2) {
+                alert('Please select at least 2 files to merge');
+                return;
+            }
+
+            const urls = [];
+            selected.forEach(cb => {
+                const file = uploadedFiles[cb.value];
+                urls.push(file.cloudinaryUrl || file.url);
+            });
+
+            try {
+                const res = await fetch('/api/audio/merge', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'user-key': currentUserKey
+                    },
+                    body: JSON.stringify({ urls })
+                });
+
+                if (!res.ok) throw new Error('Merge failed');
+
+                alert('Audio merged successfully!');
+                loadAllOutputFiles();
+            } catch (err) {
+                alert('Merge error: ' + err.message);
+            }
+        }
+
+        function clearCutterSelection() {
+            document.querySelectorAll('#cutterFileList input[type=checkbox]').forEach(cb => cb.checked = false);
+            document.getElementById('cutterPlayer').src = '';
+            document.getElementById('cutStart').value = '';
+            document.getElementById('cutEnd').value = '';
+        }
+
+        function clearJoinerSelection() {
+            document.querySelectorAll('#joinerFileList input[type=checkbox]').forEach(cb => cb.checked = false);
+            document.getElementById('joinerPlayer').src = '';
+        }
+
+        async function loadAllInputFiles() {
+            const list = document.getElementById('inputFilesList');
+            if (uploadedFiles.length === 0) {
+                list.innerHTML = '<p style="color: #666; text-align: center;">No input files</p>';
+                return;
+            }
+
+            let html = '';
+            uploadedFiles.forEach(file => {
+                html += `<div class="file-item">
+                    <span class="file-name">${file.originalName}</span>
+                    <span style="font-size: 12px; color: #666;">${Math.round(file.duration)}s</span>
+                </div>`;
+            });
+            list.innerHTML = html;
+        }
+
+        async function loadAllOutputFiles() {
+            const list = document.getElementById('outputFilesList');
+            try {
+                const res = await fetch('/api/audio/outputs', {
+                    headers: { 'user-key': currentUserKey }
+                });
+
+                if (!res.ok) throw new Error('Failed to load');
+
+                const outputs = await res.json();
+                if (outputs.length === 0) {
+                    list.innerHTML = '<p style="color: #666; text-align: center;">No output files</p>';
+                    return;
+                }
+
+                let html = '';
+                outputs.forEach(file => {
+                    html += `<div class="file-item">
+                        <span class="file-name">${file.originalName}</span>
+                        <span style="font-size: 12px; color: #666;">${file.operation}</span>
+                    </div>`;
+                });
+                list.innerHTML = html;
+            } catch (err) {
+                list.innerHTML = '<p style="color: #666; text-align: center;">Error loading files</p>';
+            }
+        }
+
+        function uploadImagesFromDash() {
+            const input = document.getElementById('dashImageFiles');
+            const files = input.files;
+            if (!files.length) return;
+
+            const loadingContainer = document.getElementById('dashImageUploadLoading');
+            const progressFill = document.getElementById('dashImageUploadProgress');
+            loadingContainer.style.display = 'block';
+
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += 5;
+                if (progress > 90) progress = 90;
+                progressFill.style.width = progress + '%';
+            }, 200);
+
+            let formData = new FormData();
+            for (let f of files) formData.append('images', f);
+
+            fetch('/api/images/upload', {
+                method: 'POST',
+                headers: { 'user-key': currentUserKey },
+                body: formData
+            })
+            .then(res => {
+                clearInterval(progressInterval);
+                if (!res.ok) throw new Error('Upload failed');
+                return res.json();
+            })
+            .then(data => {
+                progressFill.style.width = '100%';
+                setTimeout(() => {
+                    loadingContainer.style.display = 'none';
+                    progressFill.style.width = '0%';
+                    uploadedImages = uploadedImages.concat(data);
+                    loadCloudImages();
+                    alert('Images uploaded!');
+                }, 500);
+            })
+            .catch(err => {
+                clearInterval(progressInterval);
+                loadingContainer.style.display = 'none';
+                alert('Upload error: ' + err.message);
+            });
+
+            input.value = '';
+        }
+
+        async function loadCloudImages() {
+            const list = document.getElementById('cloudImageList');
+            try {
+                const res = await fetch('/api/images/files', {
+                    headers: { 'user-key': currentUserKey }
+                });
+
+                if (!res.ok) throw new Error('Failed to load');
+
+                const images = await res.json();
+                if (images.length === 0) {
+                    list.innerHTML = '<p style="color: #666; text-align: center;">No cloud images</p>';
+                    return;
+                }
+
+                let html = '';
+                images.forEach(img => {
+                    html += `<div class="file-item">
+                        <span class="file-name">${img.originalName}</span>
+                    </div>`;
+                });
+                list.innerHTML = html;
+            } catch (err) {
+                list.innerHTML = '<p style="color: #666; text-align: center;">Error loading images</p>';
+            }
+        }
+
+        function displayCloudImages() {
+            loadCloudImages();
         }
     </script>
 

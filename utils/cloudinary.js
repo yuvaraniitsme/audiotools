@@ -17,18 +17,28 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-const storage = new CloudinaryStorage({
+// Storage for audio files
+const audioStorage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: {
         folder: 'audio_files',
         resource_type: 'video',
-        format: async (req, file) => {
-            return 'mp3';
-        },
-        public_id: (req, file) => {
-            return Date.now() + '-' + file.originalname;
-        }
+        format: async (req, file) => 'mp3',
+        public_id: (req, file) => Date.now() + '-' + file.originalname
     }
 });
 
-module.exports = { cloudinary, storage };
+// Storage for image files
+const imageStorage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'image_files',
+        resource_type: 'image',
+        public_id: (req, file) => Date.now() + '-' + file.originalname
+    }
+});
+
+// Default storage (audio)
+const storage = audioStorage;
+
+module.exports = { cloudinary, storage, audioStorage, imageStorage };

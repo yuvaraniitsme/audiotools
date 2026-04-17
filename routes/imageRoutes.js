@@ -1,11 +1,11 @@
 const express = require("express");
 const router = express.Router();
 const multer = require("multer");
-const { cloudinary, storage } = require("../utils/cloudinary");
+const { cloudinary, imageStorage } = require("../utils/cloudinary");
 const ImageFile = require("../models/ImageFile");
 const path = require('path');
 
-const upload = multer({ storage });
+const upload = multer({ storage: imageStorage });
 
 router.post("/upload", upload.array("images"), async (req, res) => {
     try {
