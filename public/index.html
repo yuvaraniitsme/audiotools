@@ -260,6 +260,45 @@
             text-transform: uppercase;
         }
 
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            background: #f5f5f5;
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .feature-icon {
+            font-size: 32px;
+            margin-bottom: 15px;
+        }
+
+        .feature-card h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .feature-card p {
+            margin: 0;
+            color: #666;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 768px) {
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
         .loading-container {
             margin: 15px 0;
             padding: 15px;
@@ -357,6 +396,42 @@
                 <input type="number" id="newKey" placeholder="Enter 5 digit key">
                 <button class="blue" onclick="createKey()">OK</button>
                 <button class="backBtn" onclick="goBack()">⬅ Back</button>
+            </div>
+        </div>
+
+        <!-- FEATURES SECTION -->
+        <div id="features" class="section" style="display:block; padding: 20px;">
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">✂️</div>
+                    <h4>Fast Audio Cutter</h4>
+                    <p>Trim MP3, WAV, AMR and other audio files by selecting start and end times.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔊</div>
+                    <h4>Audio Joiner</h4>
+                    <p>Merge multiple audio files into one seamless track with ease.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">☁️</div>
+                    <h4>Store Photos Online</h4>
+                    <p>Upload and access your images from anywhere, anytime. Cloud storage included.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎵</div>
+                    <h4>All Audio Formats</h4>
+                    <p>Works with MP3, WAV, OGG, WMA, AMR and other popular formats.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🖥️</div>
+                    <h4>Completely Online</h4>
+                    <p>No software to install. Works on any device with a browser.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h4>Secure & Private</h4>
+                    <p>Your files are private. Only you can access your uploaded content.</p>
+                </div>
             </div>
         </div>
 
@@ -1463,6 +1538,20 @@
                 return;
             }
 
+            // Show loading animation
+            const loadingContainer = document.getElementById('cutterUploadLoading');
+            const progressFill = document.getElementById('cutterUploadProgress');
+            const loadingText = loadingContainer.querySelector('.loading-text');
+            loadingContainer.style.display = 'block';
+            loadingText.textContent = 'Cutting audio...';
+            
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += 3;
+                if (progress > 90) progress = 90;
+                progressFill.style.width = progress + '%';
+            }, 300);
+
             try {
                 const res = await fetch('/api/audio/cut', {
                     method: 'POST',
@@ -1477,11 +1566,20 @@
                     })
                 });
 
+                clearInterval(progressInterval);
                 if (!res.ok) throw new Error('Cut failed');
 
-                alert('Audio cut successfully!');
-                loadAllOutputFiles();
+                progressFill.style.width = '100%';
+                setTimeout(() => {
+                    loadingContainer.style.display = 'none';
+                    progressFill.style.width = '0%';
+                    loadingText.textContent = 'Uploading...';
+                    alert('Audio cut successfully!');
+                }, 500);
             } catch (err) {
+                clearInterval(progressInterval);
+                loadingContainer.style.display = 'none';
+                loadingText.textContent = 'Uploading...';
                 alert('Cut error: ' + err.message);
             }
         }
@@ -1492,6 +1590,20 @@
                 alert('Please select at least 2 files to merge');
                 return;
             }
+
+            // Show loading animation
+            const loadingContainer = document.getElementById('joinerUploadLoading');
+            const progressFill = document.getElementById('joinerUploadProgress');
+            const loadingText = loadingContainer.querySelector('.loading-text');
+            loadingContainer.style.display = 'block';
+            loadingText.textContent = 'Joining audio files...';
+            
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += 2;
+                if (progress > 90) progress = 90;
+                progressFill.style.width = progress + '%';
+            }, 400);
 
             const urls = [];
             selected.forEach(cb => {
@@ -1509,11 +1621,20 @@
                     body: JSON.stringify({ urls })
                 });
 
+                clearInterval(progressInterval);
                 if (!res.ok) throw new Error('Merge failed');
 
-                alert('Audio merged successfully!');
-                loadAllOutputFiles();
+                progressFill.style.width = '100%';
+                setTimeout(() => {
+                    loadingContainer.style.display = 'none';
+                    progressFill.style.width = '0%';
+                    loadingText.textContent = 'Uploading...';
+                    alert('Audio merged successfully!');
+                }, 500);
             } catch (err) {
+                clearInterval(progressInterval);
+                loadingContainer.style.display = 'none';
+                loadingText.textContent = 'Uploading...';
                 alert('Merge error: ' + err.message);
             }
         }
