@@ -226,6 +226,40 @@
             display: none;
         }
 
+        .main-menu-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            padding: 10px;
+        }
+
+        .menu-button {
+            background: linear-gradient(135deg, #5b9bd5 0%, #4a8bc2 100%);
+            border-radius: 15px;
+            padding: 30px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(91, 155, 213, 0.3);
+        }
+
+        .menu-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(91, 155, 213, 0.4);
+        }
+
+        .menu-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .menu-title {
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
         .loading-container {
             margin: 15px 0;
             padding: 15px;
@@ -311,7 +345,7 @@
             <div class="card">
                 <h2>WELCOME TO AUDIO TOOLS</h2>
                 <button class="blue" onclick="navigate('login')">LOGIN 🔑</button>
-               <!-- <a href="/admin.html" style="display: block; margin-top: 15px; color: #666; font-size: 14px; text-decoration: none;">🔐 Admin Panel</a> -->
+                <a href="/admin.html" style="display: block; margin-top: 15px; color: #666; font-size: 14px; text-decoration: none;">🔐 Admin Panel</a>
                 <button class="orange" onclick="navigate('create')">CREATE KEY +</button>
             </div>
         </div>
@@ -338,153 +372,168 @@
 
         <!-- DASHBOARD -->
         <div id="dashboard" class="section">
-            <h3>DASHBOARD</h3>
+            <h3>AUDIO TOOLS DASHBOARD</h3>
 
-            <div class="dashboard-grid">
-                <!-- Row 1: Audio Cutter -->
-                <div class="dashboard-box">
-                    <h4>✂️ Audio Cutter</h4>
-                    
-                    <!-- Drag & Drop Upload -->
-                    <div class="drag-drop-area" onclick="document.getElementById('cutterFiles').click()">
-                        <div class="plus-icon">+</div>
-                        <div class="drag-drop-text">Drag & Drop Audio Files<br>or Click to Upload</div>
-                    </div>
-                    <input type="file" multiple id="cutterFiles" class="hidden-file-input" accept="audio/*" onchange="uploadToSection(this, 'cutter')">
-                    
-                    <!-- Upload Loading -->
-                    <div id="cutterUploadLoading" class="loading-container" style="display: none;">
-                        <div class="loading-spinner"></div>
-                        <div class="progress-bar">
-                            <div id="cutterUploadProgress" class="progress-fill"></div>
-                        </div>
-                        <div class="loading-text">Uploading...</div>
-                    </div>
-                    
-                    <!-- File List with Checkboxes -->
-                    <div class="file-list-container" id="cutterFileList">
-                        <p style="color: #666; text-align: center;">No files uploaded yet</p>
-                    </div>
-                    
-                    <!-- Audio Player -->
-                    <div class="audio-player-inline">
-                        <audio id="cutterPlayer" controls>
-                            <source src="" type="audio/mpeg">
-                        </audio>
-                    </div>
-                    
-                    <!-- Cut Controls -->
-                    <div class="cut-controls">
-                        <input type="number" id="cutStart" placeholder="Start (sec)" step="0.1">
-                        <input type="number" id="cutEnd" placeholder="End (sec)" step="0.1">
-                    </div>
-                    
-                    <!-- Action Buttons -->
-                    <div class="action-buttons">
-                        <button class="blue" onclick="cutSelected()">✂️ Cut</button>
-                        <button onclick="clearCutterSelection()" style="background: #dc3545; color: white;">Clear</button>
-                    </div>
+            <div class="main-menu-grid">
+                <div class="menu-button" onclick="navigate('cutSection')">
+                    <div class="menu-icon">✂️</div>
+                    <div class="menu-title">AUDIO CUTTER</div>
                 </div>
 
-                <!-- Row 1: Audio Joiner -->
-                <div class="dashboard-box">
-                    <h4>🔊 Audio Joiner</h4>
-                    
-                    <!-- Drag & Drop Upload -->
-                    <div class="drag-drop-area" onclick="document.getElementById('joinerFiles').click()">
-                        <div class="plus-icon">+</div>
-                        <div class="drag-drop-text">Drag & Drop Audio Files<br>or Click to Upload</div>
-                    </div>
-                    <input type="file" multiple id="joinerFiles" class="hidden-file-input" accept="audio/*" onchange="uploadToSection(this, 'joiner')">
-                    
-                    <!-- Upload Loading -->
-                    <div id="joinerUploadLoading" class="loading-container" style="display: none;">
-                        <div class="loading-spinner"></div>
-                        <div class="progress-bar">
-                            <div id="joinerUploadProgress" class="progress-fill"></div>
-                        </div>
-                        <div class="loading-text">Uploading...</div>
-                    </div>
-                    
-                    <!-- File List with Checkboxes -->
-                    <div class="file-list-container" id="joinerFileList">
-                        <p style="color: #666; text-align: center;">No files uploaded yet</p>
-                    </div>
-                    
-                    <!-- Audio Player -->
-                    <div class="audio-player-inline">
-                        <audio id="joinerPlayer" controls>
-                            <source src="" type="audio/mpeg">
-                        </audio>
-                    </div>
-                    
-                    <!-- Action Buttons -->
-                    <div class="action-buttons">
-                        <button class="blue" onclick="mergeSelected()">🔊 Join</button>
-                        <button onclick="clearJoinerSelection()" style="background: #dc3545; color: white;">Clear</button>
-                    </div>
+                <div class="menu-button" onclick="navigate('joinSection')">
+                    <div class="menu-icon">🔊</div>
+                    <div class="menu-title">AUDIO JOINER</div>
                 </div>
 
-                <!-- Row 2: Input Files -->
-                <div class="dashboard-box">
-                    <h4>📁 Input Files</h4>
-                    
-                    <div class="file-list-container" id="inputFilesList" style="max-height: 250px;">
-                        <p style="color: #666; text-align: center;">No input files</p>
-                    </div>
-                    
-                    <button onclick="loadAllInputFiles()" class="blue" style="margin-top: 15px;">🔄 Refresh</button>
+                <div class="menu-button" onclick="navigate('inputFilesSection')">
+                    <div class="menu-icon">📁</div>
+                    <div class="menu-title">INPUT FILES</div>
                 </div>
 
-                <!-- Row 2: Output Files -->
-                <div class="dashboard-box">
-                    <h4>📤 Output Files</h4>
-                    
-                    <div class="file-list-container" id="outputFilesList" style="max-height: 250px;">
-                        <p style="color: #666; text-align: center;">No output files</p>
-                    </div>
-                    
-                    <button onclick="loadAllOutputFiles()" class="blue" style="margin-top: 15px;">🔄 Refresh</button>
+                <div class="menu-button" onclick="navigate('outputFilesSection')">
+                    <div class="menu-icon">📤</div>
+                    <div class="menu-title">OUTPUT FILES</div>
                 </div>
 
-                <!-- Row 3: Upload Images -->
-                <div class="dashboard-box">
-                    <h4>🖼️ Upload Images</h4>
-                    
-                    <!-- Drag & Drop Upload -->
-                    <div class="drag-drop-area" onclick="document.getElementById('dashImageFiles').click()">
-                        <div class="plus-icon">+</div>
-                        <div class="drag-drop-text">Drag & Drop Images<br>or Click to Upload</div>
-                    </div>
-                    <input type="file" multiple id="dashImageFiles" class="hidden-file-input" accept="image/*" onchange="uploadImagesFromDash()">
-                    
-                    <!-- Upload Loading -->
-                    <div id="dashImageUploadLoading" class="loading-container" style="display: none;">
-                        <div class="loading-spinner"></div>
-                        <div class="progress-bar">
-                            <div id="dashImageUploadProgress" class="progress-fill"></div>
-                        </div>
-                        <div class="loading-text">Uploading images...</div>
-                    </div>
-                    
-                    <div class="file-list-container" id="dashImageList">
-                        <p style="color: #666; text-align: center;">No images uploaded</p>
-                    </div>
+                <div class="menu-button" onclick="navigate('uploadImagesSection')">
+                    <div class="menu-icon">☁️</div>
+                    <div class="menu-title">UPLOAD IMAGES</div>
                 </div>
 
-                <!-- Row 3: Cloud Images -->
-                <div class="dashboard-box">
-                    <h4>☁️ Cloud Images</h4>
-                    
-                    <div class="file-list-container" id="cloudImageList" style="max-height: 250px;">
-                        <p style="color: #666; text-align: center;">No cloud images</p>
-                    </div>
-                    
-                    <button onclick="loadCloudImages()" class="blue" style="margin-top: 15px;">🔄 Refresh</button>
+                <div class="menu-button" onclick="navigate('cloudImagesSection')">
+                    <div class="menu-icon">🖼️</div>
+                    <div class="menu-title">CLOUD IMAGES</div>
                 </div>
             </div>
 
-            <button class="backBtn" onclick="goBack()" style="margin-top: 20px;">&#x2190 Back</button>
+            <button class="backBtn" onclick="goBack()" style="margin-top: 20px;">&#x2190 Logout</button>
+        </div>
+
+        <!-- AUDIO CUTTER SECTION -->
+        <div id="cutSection" class="section">
+            <div class="dashboard-box">
+                <h4>✂️ Audio Cutter</h4>
+                
+                <div class="drag-drop-area" onclick="document.getElementById('cutterFiles').click()">
+                    <div class="plus-icon">+</div>
+                    <div class="drag-drop-text">Drag & Drop Audio Files<br>or Click to Upload</div>
+                </div>
+                <input type="file" multiple id="cutterFiles" class="hidden-file-input" accept="audio/*" onchange="uploadToSection(this, 'cutter')">
+                
+                <div id="cutterUploadLoading" class="loading-container" style="display: none;">
+                    <div class="loading-spinner"></div>
+                    <div class="progress-bar"><div id="cutterUploadProgress" class="progress-fill"></div></div>
+                    <div class="loading-text">Uploading...</div>
+                </div>
+                
+                <div class="file-list-container" id="cutterFileList">
+                    <p style="color: #666; text-align: center;">No files uploaded yet</p>
+                </div>
+                
+                <div class="audio-player-inline">
+                    <audio id="cutterPlayer" controls></audio>
+                </div>
+                
+                <div class="cut-controls">
+                    <input type="number" id="cutStart" placeholder="Start (sec)" step="0.1">
+                    <input type="number" id="cutEnd" placeholder="End (sec)" step="0.1">
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="blue" onclick="cutSelected()">✂️ Cut Audio</button>
+                    <button onclick="clearCutterSelection()" style="background: #dc3545; color: white;">Clear</button>
+                </div>
+                
+                <button class="backBtn" onclick="goBack()" style="margin-top: 15px;">&#x2190 Back to Menu</button>
+            </div>
+        </div>
+
+        <!-- AUDIO JOINER SECTION -->
+        <div id="joinSection" class="section">
+            <div class="dashboard-box">
+                <h4>🔊 Audio Joiner</h4>
+                
+                <div class="drag-drop-area" onclick="document.getElementById('joinerFiles').click()">
+                    <div class="plus-icon">+</div>
+                    <div class="drag-drop-text">Drag & Drop Audio Files<br>or Click to Upload</div>
+                </div>
+                <input type="file" multiple id="joinerFiles" class="hidden-file-input" accept="audio/*" onchange="uploadToSection(this, 'joiner')">
+                
+                <div id="joinerUploadLoading" class="loading-container" style="display: none;">
+                    <div class="loading-spinner"></div>
+                    <div class="progress-bar"><div id="joinerUploadProgress" class="progress-fill"></div></div>
+                    <div class="loading-text">Uploading...</div>
+                </div>
+                
+                <div class="file-list-container" id="joinerFileList">
+                    <p style="color: #666; text-align: center;">No files uploaded yet</p>
+                </div>
+                
+                <div class="audio-player-inline">
+                    <audio id="joinerPlayer" controls></audio>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="blue" onclick="mergeSelected()">🔊 Join Audio</button>
+                    <button onclick="clearJoinerSelection()" style="background: #dc3545; color: white;">Clear</button>
+                </div>
+                
+                <button class="backBtn" onclick="goBack()" style="margin-top: 15px;">&#x2190 Back to Menu</button>
+            </div>
+        </div>
+
+        <!-- INPUT FILES SECTION -->
+        <div id="inputFilesSection" class="section">
+            <div class="dashboard-box">
+                <h4>📁 Input Files</h4>
+                <div class="file-list-container" id="inputFilesListFull" style="max-height: 400px;">
+                    <p style="color: #666; text-align: center;">No input files</p>
+                </div>
+                <button onclick="loadAllInputFilesFull()" class="blue" style="margin-top: 15px;">🔄 Refresh</button>
+                <button class="backBtn" onclick="goBack()" style="margin-top: 15px;">&#x2190 Back to Menu</button>
+            </div>
+        </div>
+
+        <!-- OUTPUT FILES SECTION -->
+        <div id="outputFilesSection" class="section">
+            <div class="dashboard-box">
+                <h4>📤 Output Files</h4>
+                <div class="file-list-container" id="outputFilesListFull" style="max-height: 400px;">
+                    <p style="color: #666; text-align: center;">No output files</p>
+                </div>
+                <button onclick="loadAllOutputFilesFull()" class="blue" style="margin-top: 15px;">🔄 Refresh</button>
+                <button class="backBtn" onclick="goBack()" style="margin-top: 15px;">&#x2190 Back to Menu</button>
+            </div>
+        </div>
+
+        <!-- UPLOAD IMAGES SECTION -->
+        <div id="uploadImagesSection" class="section">
+            <div class="dashboard-box">
+                <h4>🖼️ Upload Images</h4>
+                <div class="drag-drop-area" onclick="document.getElementById('sectionImageFiles').click()">
+                    <div class="plus-icon">+</div>
+                    <div class="drag-drop-text">Drag & Drop Images<br>or Click to Upload</div>
+                </div>
+                <input type="file" multiple id="sectionImageFiles" class="hidden-file-input" accept="image/*" onchange="uploadImagesFromSection()">
+                <div id="sectionImageUploadLoading" class="loading-container" style="display: none;">
+                    <div class="loading-spinner"></div>
+                    <div class="progress-bar"><div id="sectionImageUploadProgress" class="progress-fill"></div></div>
+                    <div class="loading-text">Uploading images...</div>
+                </div>
+                <button class="backBtn" onclick="goBack()" style="margin-top: 15px;">&#x2190 Back to Menu</button>
+            </div>
+        </div>
+
+        <!-- CLOUD IMAGES SECTION -->
+        <div id="cloudImagesSection" class="section">
+            <div class="dashboard-box">
+                <h4>☁️ Cloud Images</h4>
+                <div class="file-list-container" id="cloudImageListFull" style="max-height: 400px;">
+                    <p style="color: #666; text-align: center;">No cloud images</p>
+                </div>
+                <button onclick="loadCloudImagesFull()" class="blue" style="margin-top: 15px;">🔄 Refresh</button>
+                <button class="backBtn" onclick="goBack()" style="margin-top: 15px;">&#x2190 Back to Menu</button>
+            </div>
         </div>
 
 
@@ -1256,7 +1305,7 @@
             }
         }
 
-        // Update navigation to handle cloud images
+        // Update navigation to handle all sections
         function navigate(id) {
             let current = getCurrentSection();
             if (current) historyStack.push(current);
@@ -1264,14 +1313,17 @@
             show(id);
 
             if (id === 'dashboard') {
-                loadDashboardData();
-            } else if (id === 'cloudImages') {
-                loadUserImages();
-                setTimeout(() => displayCloudImages(), 100);
+                // Just show menu, don't auto-load everything
             } else if (id === 'cutSection') {
-                setTimeout(() => setupCutAudioPlayer(), 300);
+                refreshCutterList();
             } else if (id === 'joinSection') {
-                setTimeout(() => setupMergeAudioPlayer(), 300);
+                refreshJoinerList();
+            } else if (id === 'inputFilesSection') {
+                loadAllInputFilesFull();
+            } else if (id === 'outputFilesSection') {
+                loadAllOutputFilesFull();
+            } else if (id === 'cloudImagesSection') {
+                loadCloudImagesFull();
             }
         }
 
@@ -1600,6 +1652,139 @@
 
         function displayCloudImages() {
             loadCloudImages();
+        }
+
+        /* FULL SECTION FUNCTIONS */
+        async function loadAllInputFilesFull() {
+            const list = document.getElementById('inputFilesListFull');
+            await loadUserFiles();
+            
+            if (uploadedFiles.length === 0) {
+                list.innerHTML = '<p style="color: #666; text-align: center;">No input files</p>';
+                return;
+            }
+
+            let html = '';
+            uploadedFiles.forEach((file, index) => {
+                html += `<div class="file-item">
+                    <span class="file-name">${file.originalName}</span>
+                    <span style="font-size: 12px; color: #666;">${Math.round(file.duration)}s</span>
+                    <button class="play-btn" onclick="downloadFile('${file.cloudinaryUrl || file.url}', '${file.originalName}')">⬇ Download</button>
+                </div>`;
+            });
+            list.innerHTML = html;
+        }
+
+        async function loadAllOutputFilesFull() {
+            const list = document.getElementById('outputFilesListFull');
+            try {
+                const res = await fetch('/api/audio/outputs', {
+                    headers: { 'user-key': currentUserKey }
+                });
+
+                if (!res.ok) throw new Error('Failed to load');
+
+                const outputs = await res.json();
+                if (outputs.length === 0) {
+                    list.innerHTML = '<p style="color: #666; text-align: center;">No output files</p>';
+                    return;
+                }
+
+                let html = '';
+                outputs.forEach(file => {
+                    html += `<div class="file-item">
+                        <span class="file-name">${file.originalName}</span>
+                        <span style="font-size: 12px; color: #666;">${file.operation}</span>
+                        <button class="play-btn" onclick="downloadFile('${file.cloudinaryUrl || file.url}', '${file.originalName}')">⬇ Download</button>
+                    </div>`;
+                });
+                list.innerHTML = html;
+            } catch (err) {
+                list.innerHTML = '<p style="color: #666; text-align: center;">Error loading files</p>';
+            }
+        }
+
+        async function loadCloudImagesFull() {
+            const list = document.getElementById('cloudImageListFull');
+            try {
+                const res = await fetch('/api/images/files', {
+                    headers: { 'user-key': currentUserKey }
+                });
+
+                if (!res.ok) throw new Error('Failed to load');
+
+                const images = await res.json();
+                if (images.length === 0) {
+                    list.innerHTML = '<p style="color: #666; text-align: center;">No cloud images</p>';
+                    return;
+                }
+
+                let html = '';
+                images.forEach(img => {
+                    html += `<div class="file-item">
+                        <span class="file-name">${img.originalName}</span>
+                        <button class="play-btn" onclick="downloadFile('${img.cloudinaryUrl || img.url}', '${img.originalName}')">⬇ Download</button>
+                    </div>`;
+                });
+                list.innerHTML = html;
+            } catch (err) {
+                list.innerHTML = '<p style="color: #666; text-align: center;">Error loading images</p>';
+            }
+        }
+
+        function downloadFile(url, filename) {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function uploadImagesFromSection() {
+            const input = document.getElementById('sectionImageFiles');
+            const files = input.files;
+            if (!files.length) return;
+
+            const loadingContainer = document.getElementById('sectionImageUploadLoading');
+            const progressFill = document.getElementById('sectionImageUploadProgress');
+            loadingContainer.style.display = 'block';
+
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += 5;
+                if (progress > 90) progress = 90;
+                progressFill.style.width = progress + '%';
+            }, 200);
+
+            let formData = new FormData();
+            for (let f of files) formData.append('images', f);
+
+            fetch('/api/images/upload', {
+                method: 'POST',
+                headers: { 'user-key': currentUserKey },
+                body: formData
+            })
+            .then(res => {
+                clearInterval(progressInterval);
+                if (!res.ok) throw new Error('Upload failed');
+                return res.json();
+            })
+            .then(data => {
+                progressFill.style.width = '100%';
+                setTimeout(() => {
+                    loadingContainer.style.display = 'none';
+                    progressFill.style.width = '0%';
+                    alert('Images uploaded successfully!');
+                }, 500);
+            })
+            .catch(err => {
+                clearInterval(progressInterval);
+                loadingContainer.style.display = 'none';
+                alert('Upload error: ' + err.message);
+            });
+
+            input.value = '';
         }
     </script>
 
