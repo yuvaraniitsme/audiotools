@@ -31,6 +31,14 @@ router.post("/upload", upload.array("audios"), async (req, res) => {
             return res.status(400).json({ message: 'No files uploaded' });
         }
 
+        // Reject image files at the audio endpoint
+        for (let file of req.files) {
+            if (file.mimetype && file.mimetype.startsWith('image/')) {
+                console.log('Image file rejected at audio endpoint:', file.originalname);
+                return res.status(400).json({ message: `Image files are not allowed here. Please use the Upload Images section. File: ${file.originalname}` });
+            }
+        }
+
         console.log(`Processing ${req.files.length} files`);
 
         let uploaded = [];
@@ -146,13 +154,13 @@ router.post("/upload", upload.array("audios"), async (req, res) => {
                 }
             }
 
-            // Store file in database
+            // Store file in database (use null for invalid duration)
             const audioFile = await AudioFile.create({
                 userKey,
                 originalName: originalName,
                 cloudinaryUrl: finalUrl,
                 cloudinaryPublicId: finalPublicId,
-                duration: duration,
+                duration: duration || null,
                 size: file.size,
                 mimeType: file.mimetype,
                 isAudio: isAudio,

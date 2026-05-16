@@ -162,7 +162,7 @@ class AudioProcessor {
     static async getAudioDuration(url) {
         return new Promise((resolve, reject) => {
             ffmpeg.ffprobe(url, async (err, metadata) => {
-                if (!err && metadata && metadata.format && metadata.format.duration) {
+                if (!err && metadata && metadata.format && typeof metadata.format.duration === 'number') {
                     return resolve(metadata.format.duration);
                 }
 

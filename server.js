@@ -24,6 +24,8 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.static("public"));
+// Serve uploaded files
+app.use("/uploads", express.static(path.join(__dirname, "public", "uploads")));
 
 // Log environment variables (without sensitive info)
 console.log("Environment Check:");

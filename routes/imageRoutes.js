@@ -31,17 +31,32 @@ router.post("/upload", upload.array("images"), async (req, res) => {
         for (let file of req.files) {
             console.log('Processing image:', file.originalname);
             
-            if (!file.path) {
-                console.log('No file path for:', file.originalname);
+            // Handle both Cloudinary and disk storage
+            let fileUrl = file.path; // Cloudinary path
+            if (!fileUrl && file.destination && file.filename) {
+                // Disk storage: construct web-accessible URL
+                fileUrl = `/uploads/${encodeURIComponent(file.filename)}`;
+            }
+            
+            if (!fileUrl) {
+                console.log('No file URL for:', file.originalname);
                 continue;
             }
 
-            let result = await cloudinary.uploader.upload(file.path, {
-                resource_type: "image",
-                folder: `image_files/${userKey}`
-            });
-
-            console.log('Cloudinary upload successful:', result.public_id);
+            let result = { secure_url: fileUrl, public_id: file.filename || 'local_' + Date.now() };
+            
+            // If using Cloudinary (file.path exists and is a full URL), upload to Cloudinary
+            if (file.path && file.path.startsWith('http')) {
+                try {
+                    result = await cloudinary.uploader.upload(file.path, {
+                        resource_type: "image",
+                        folder: `image_files/${userKey}`
+                    });
+                    console.log('Cloudinary upload successful:', result.public_id);
+                } catch (cloudErr) {
+                    console.log('Cloudinary upload skipped, using local URL:', fileUrl);
+                }
+            }
 
             const imageFile = await ImageFile.create({
                 userKey,

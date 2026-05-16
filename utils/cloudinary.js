@@ -68,4 +68,6 @@ if (hasCloudinary) {
     };
 }
 
-module.exports = { cloudinary, storage };
+// Export both storage and imageStorage for compatibility
+// imageStorage is the same as storage since it's now dynamic based on mimetype
+module.exports = { cloudinary, storage, imageStorage: storage };
