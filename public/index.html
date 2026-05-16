@@ -1509,13 +1509,22 @@
 
         function refreshCutterList() {
             const list = document.getElementById('cutterFileList');
-            if (uploadedFiles.length === 0) {
-                list.innerHTML = '<p style="color: #666; text-align: center;">No files uploaded yet</p>';
+            // Filter to only show audio files
+            const audioFiles = uploadedFiles.filter(file => {
+                const mimeType = file.mimeType || '';
+                const ext = (file.originalName && file.originalName.split('.').pop()) ? ('.' + file.originalName.split('.').pop().toLowerCase()) : '';
+                const supportedExts = ['.aac', '.m4a', '.amr', '.wav', '.mp3'];
+                return file.isAudio || file.isConverted || mimeType.startsWith('audio/') || supportedExts.includes(ext);
+            });
+            
+            if (audioFiles.length === 0) {
+                list.innerHTML = '<p style="color: #666; text-align: center;">No audio files uploaded yet</p>';
                 return;
             }
 
             let html = '';
-            uploadedFiles.forEach((file, index) => {
+            audioFiles.forEach((file, index) => {
+                const originalIndex = uploadedFiles.indexOf(file);
                 const isAudio = file.isAudio;
                 const mimeType = file.mimeType || '';
                 const ext = (file.originalName && file.originalName.split('.').pop()) ? ('.' + file.originalName.split('.').pop().toLowerCase()) : '';
@@ -1532,11 +1541,11 @@
                 } else {
                     badge = '<span style="color: orange; font-size: 0.8em;">[File]</span>';
                 }
-                const playBtn = effectiveIsAudio && hasUrl ? `<button class="play-btn" onclick="playInCutter(${index})">▶ Play</button>` : '';
+                const playBtn = effectiveIsAudio && hasUrl ? `<button class="play-btn" onclick="playInCutter(${originalIndex})">▶ Play</button>` : '';
                 const errorMsg = file.uploadError ? `<span style="color: red; font-size: 0.8em;">(Upload Failed)</span>` : '';
 
                 html += `<div class="file-item">
-                    <input type="checkbox" id="cutter-check-${index}" value="${index}" onchange="onCutterSelectionChange()">
+                    <input type="checkbox" id="cutter-check-${originalIndex}" value="${originalIndex}" onchange="onCutterSelectionChange()">
                     <span class="file-name">${file.originalName} ${badge} ${errorMsg}</span>
                     ${playBtn}
                 </div>`;
@@ -1546,13 +1555,22 @@
 
         function refreshJoinerList() {
             const list = document.getElementById('joinerFileList');
-            if (uploadedFiles.length === 0) {
-                list.innerHTML = '<p style="color: #666; text-align: center;">No files uploaded yet</p>';
+            // Filter to only show audio files
+            const audioFiles = uploadedFiles.filter(file => {
+                const mimeType = file.mimeType || '';
+                const ext = (file.originalName && file.originalName.split('.').pop()) ? ('.' + file.originalName.split('.').pop().toLowerCase()) : '';
+                const supportedExts = ['.aac', '.m4a', '.amr', '.wav', '.mp3'];
+                return file.isAudio || file.isConverted || mimeType.startsWith('audio/') || supportedExts.includes(ext);
+            });
+            
+            if (audioFiles.length === 0) {
+                list.innerHTML = '<p style="color: #666; text-align: center;">No audio files uploaded yet</p>';
                 return;
             }
 
             let html = '';
-            uploadedFiles.forEach((file, index) => {
+            audioFiles.forEach((file, index) => {
+                const originalIndex = uploadedFiles.indexOf(file);
                 const isAudio = file.isAudio;
                 const mimeType = file.mimeType || '';
                 const ext = (file.originalName && file.originalName.split('.').pop()) ? ('.' + file.originalName.split('.').pop().toLowerCase()) : '';
@@ -1568,11 +1586,11 @@
                 } else {
                     badge = '<span style="color: orange; font-size: 0.8em;">[File]</span>';
                 }
-                const playBtn = effectiveIsAudio && hasUrl ? `<button class="play-btn" onclick="playInJoiner(${index})">▶ Play</button>` : '';
+                const playBtn = effectiveIsAudio && hasUrl ? `<button class="play-btn" onclick="playInJoiner(${originalIndex})">▶ Play</button>` : '';
                 const errorMsg = file.uploadError ? `<span style="color: red; font-size: 0.8em;">(Upload Failed)</span>` : '';
 
                 html += `<div class="file-item">
-                    <input type="checkbox" id="joiner-check-${index}" value="${index}">
+                    <input type="checkbox" id="joiner-check-${originalIndex}" value="${originalIndex}">
                     <span class="file-name">${file.originalName} ${badge} ${errorMsg}</span>
                     ${playBtn}
                 </div>`;
@@ -2038,6 +2056,7 @@
                 setTimeout(() => {
                     loadingContainer.style.display = 'none';
                     progressFill.style.width = '0%';
+                    loadCloudImages();
                     alert('Images uploaded successfully!');
                 }, 500);
             })
