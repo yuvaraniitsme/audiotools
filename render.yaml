@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: audiotoolsbygoogle
+    env: node
+    buildCommand: npm install && apt-get update && apt-get install -y ffmpeg
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: RENDER
+        value: "true"
